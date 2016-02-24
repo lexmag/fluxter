@@ -1,0 +1,2 @@
+%{"benchfella": {:hex, :benchfella, "0.3.2"},
+  "statix": {:hex, :statix, "0.7.0"}}
