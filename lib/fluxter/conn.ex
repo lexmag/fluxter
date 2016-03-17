@@ -1,4 +1,6 @@
 defmodule Fluxter.Conn do
+  @moduledoc false
+
   use GenServer
 
   alias Fluxter.Packet
