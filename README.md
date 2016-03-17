@@ -3,7 +3,7 @@
 [![Build Status](https://travis-ci.org/lexmag/fluxter.svg?branch=master "Build Status")](https://travis-ci.org/lexmag/fluxter)
 [![Hex Version](https://img.shields.io/hexpm/v/fluxter.svg "Hex Version")](https://hex.pm/packages/fluxter)
 
-Fluxter is an InfluxDB writer for Elixir, it uses line protocol over UDP.
+Fluxter is an InfluxDB writer for Elixir. It uses InfluxDB's line protocol over UDP.
 
 ## Installation
 
@@ -23,7 +23,7 @@ Then run `mix deps.get` in your shell to fetch the dependencies.
 
 ## Usage
 
-A module that uses Fluxter represents connection pool:
+A module that uses Fluxter becomes an InfluxDB connection pool:
 
 ```elixir
 defmodule MyApp.Fluxter do
@@ -31,7 +31,7 @@ defmodule MyApp.Fluxter do
 end
 ```
 
-Each Fluxter pool has a `start_link/0` function that needs to be invoked before using it. In general, this function is not called directly, but used as part of your application supervision tree, for example:
+Each Fluxter pool provides a `start_link/0` function that starts the pool and connects to InfluxDB; this function needs to be invoked before the pool can be used. Usually, you won't call `start_link/0` directly as you'll want to use a Fluxter pool as part of your application's supervision tree. For example:
 
 ```elixir
 def start(_type, _args) do
@@ -45,33 +45,9 @@ def start(_type, _args) do
 end
 ```
 
-Thereafter, the `write/2,3` and `measure/2,3,4` functions will be successfully sending points to the datastore.
+Once the Fluxter pool is started, its `write/2,3` and `measure/2,3,4` functions can successfully be used to send points to the data store.
 
-### Configuration
-
-Fluxter could be configured globally with:
-
-```elixir
-config :fluxter,
-  prefix: "my_app",
-  host: "metrics.tld",
-  port: 1122
-```
-
-and on a per module basis as well:
-
-```elixir
-config :fluxter, MyApp.Fluxter,
-  pool_size: 10,
-  port: 2233
-```
-
-The defaults are:
-
-* prefix: `nil`
-* host: `"127.0.0.1"`
-* port: `8092`
-* pool_size: `5`
+Much more information can be found in the [documentation](http://hexdocs.pm/fluxter).
 
 ## License
 
