@@ -6,7 +6,8 @@ defmodule Fluxter.Mixfile do
      version: "0.2.0",
      elixir: "~> 1.2",
      package: package(),
-     description: desc()]
+     description: desc(),
+     deps: deps()]
   end
 
   def application() do
@@ -22,5 +23,10 @@ defmodule Fluxter.Mixfile do
     [maintainers: ["Aleksei Magusev"],
      licenses: ["ISC"],
      links: %{"GitHub" => "https://github.com/lexmag/fluxter"}]
+  end
+
+  defp deps() do
+    [{:ex_doc, ">= 0.0.0", only: :docs},
+     {:earmark, ">= 0.0.0", only: :docs}]
   end
 end
