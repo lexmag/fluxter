@@ -3,7 +3,7 @@ defmodule Fluxter.Mixfile do
 
   def project() do
     [app: :fluxter,
-     version: "0.2.0",
+     version: "0.3.0",
      elixir: "~> 1.2",
      package: package(),
      description: desc(),
@@ -20,7 +20,7 @@ defmodule Fluxter.Mixfile do
   end
 
   defp package() do
-    [maintainers: ["Aleksei Magusev"],
+    [maintainers: ["Aleksei Magusev", "Andrea Leopardi"],
      licenses: ["ISC"],
      links: %{"GitHub" => "https://github.com/lexmag/fluxter"}]
   end
