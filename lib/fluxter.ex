@@ -157,8 +157,12 @@ defmodule Fluxter do
       2
 
   """
-  @callback measure(name :: String.Chars.t, tags, fields, fun :: (() -> result)) ::
-    result when result: any
+  @callback measure(name :: String.Chars.t, tags, fields, fun :: (() -> result)) :: result
+    when result: any
+
+  @callback start_batch(name :: String.Chars.t, tags, fields) :: {:ok, pid}
+  @callback write_to_batch(batch :: pid, extra :: number) :: :ok
+  @callback flush_batch(batch :: pid) :: :ok
 
   @doc false
   defmacro __using__(_opts) do
@@ -207,6 +211,13 @@ defmodule Fluxter do
         write(name, tags, [value: elapsed] ++ fields)
         result
       end
+
+      def start_batch(name, tags \\ [], fields \\ []) do
+        Fluxter.Batch.start(__MODULE__, name, tags, fields)
+      end
+
+      defdelegate write_to_batch(batch, extra), to: Fluxter.Batch, as: :write
+      defdelegate flush_batch(batch), to: Fluxter.Batch, as: :flush
     end
   end
 

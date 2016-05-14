@@ -82,4 +82,35 @@ defmodule FluxterTest do
 
     refute_receive _any
   end
+
+  test "batch functions" do
+    assert {:ok, pid} = Sample.start_batch("foo", [bar: "baz"])
+    assert is_pid(pid)
+
+    assert Sample.write_to_batch(pid, 2) == :ok
+    refute_receive _any
+
+    assert Sample.write_to_batch(pid, 1) == :ok
+    refute_receive _any
+
+    assert Sample.flush_batch(pid) == :ok
+    assert_receive {:echo, "foo,bar=baz value=3i"}
+
+    refute_receive _any
+    assert {:ok, pid} = Sample.start_batch("qux", [], [bar: "baz"])
+    assert is_pid(pid)
+
+    assert Sample.write_to_batch(pid, 1.0) == :ok
+    refute_receive _any
+
+    assert Sample.flush_batch(pid) == :ok
+    assert_receive {:echo, "qux value=1.00000000000000000000e+00,bar=\"baz\""}
+
+    refute_receive _any
+    assert {:ok, pid} = Sample.start_batch("bar")
+    assert is_pid(pid)
+
+    assert Sample.flush_batch(pid) == :ok
+    refute_receive _any
+  end
 end
