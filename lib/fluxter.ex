@@ -62,6 +62,31 @@ defmodule Fluxter do
       configuring it globally for the `:fluxter` application has no
       effect. Defaults to `5`.
 
+  ## Batching
+
+  Fluxter supports "batching": a batch is a metric aggregator designed to
+  locally aggregate an numeric value and flush the aggregated value only once to
+  the storage, as a single metric. This is very useful when you have the need to
+  write a high number of metrics in a very short amount of time. Doing so can
+  have a negative impact on the speed of your code and can also cause network
+  packet drops.
+
+  For example, code like the following:
+
+      for i <- 1_000_000 do
+        my_operation(i)
+        MyApp.Fluxter.write("my_operation_success", [host: "eu-west"], 1)
+      end
+
+  can take advantage of batching:
+
+      {:ok, batch} = MyApp.Fluxter.start_batch("my_operation_success", [host: "eu-west"])
+      for i <- 1_000_000 do
+        my_operation(i)
+        MyApp.Fluxter.write_to_batch(batch, 1)
+      end
+      MyApp.Fluxter.flush_batch(batch)
+
   """
 
   @type field_value :: number | boolean | binary
@@ -160,8 +185,84 @@ defmodule Fluxter do
   @callback measure(name :: String.Chars.t, tags, fields, fun :: (() -> result)) :: result
     when result: any
 
+  @doc """
+  Should be the same as `start_batch(name, [], [])`.
+  """
+  @callback start_batch(name :: String.Chars.t) :: {:ok, pid}
+
+  @doc """
+  Should be the same as `start_batch(name, tags, [])`.
+  """
+  @callback start_batch(name :: String.Chars.t, tags) :: {:ok, pid}
+
+  @doc """
+  Starts a batch for a metric named `name`.
+
+  The purpose of this batch is to aggregate a numeric metric: values aggregated
+  in the batch will only be written to the storage as a single metric when the
+  batch is "flushed" (see `c:flush_batch/1`). `tags` and `fields` will be tags
+  and fields attached to the metric when it's flushed. The aggregated value of
+  the metric will be prepended to `fields` as a field called `value`; this means
+  that if there's already a field called `value` in `fields`, it will be
+  overridden.
+
+  This function returns `{:ok, pid}` where `pid` is the pid of the new batch.
+
+  See the "Batching" section in the documentation for `Fluxter` for more
+  information on batches.
+
+  ## Examples
+
+  Assuming a `MyApp.Fluxter` Fluxter pool exists:
+
+      iex> MyApp.Fluxter.start_batch("hits", [host: "us-west"])
+      {:ok, #PID<...>}
+
+  """
   @callback start_batch(name :: String.Chars.t, tags, fields) :: {:ok, pid}
+
+  @doc """
+  Adds the `extra` value to the given `batch`.
+
+  This function adds the `extra` value (a number) to the current value of the
+  given `batch`. To subtract, just use a negative number to add to the current
+  value of `batch`.
+
+  This function performs a *fire-and-forget* operation (a cast) on the given
+  batch, hence it will always return `:ok`.
+
+  See the "Batching" section in the documentation for `Fluxter` for more
+  information on batches.
+
+  ## Examples
+
+  Assuming a `MyApp.Fluxter` Fluxter pool exists:
+
+      iex> MyApp.Fluxter.write_to_batch(batch, 1)
+      :ok
+
+  """
   @callback write_to_batch(batch :: pid, extra :: number) :: :ok
+
+  @doc """
+  Flushes the given `batch` by writing its aggregated value as a single metric.
+
+  This function performs a *fire-and-forget* operation (a cast) on the given
+  batch, hence it will always return `:ok`.
+
+  This function will also stop the `batch` process after the metric is flushed.
+
+  See the "Batching" section in the documentation for `Fluxter` for more
+  information on batches.
+
+  ## Examples
+
+  Assuming a `MyApp.Fluxter` Fluxter pool exists:
+
+      iex> MyApp.Fluxter.flush_batch(batch)
+      :ok
+
+  """
   @callback flush_batch(batch :: pid) :: :ok
 
   @doc false
