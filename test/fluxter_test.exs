@@ -46,7 +46,8 @@ defmodule FluxterTest do
     assert_receive {:echo, "foo\\ bar value=11i"}
 
     Sample.write("foo", 1.0)
-    assert_receive {:echo, "foo value=1.00000000000000000000e+00"}
+    payload = "foo value=#{Float.to_string(1.0)}"
+    assert_receive {:echo, ^payload}
 
     Sample.write("foo", "data\"")
     assert_receive {:echo, "foo value=\"data\\\"\""}
@@ -104,7 +105,8 @@ defmodule FluxterTest do
     refute_receive _any
 
     assert Sample.flush_batch(pid) == :ok
-    assert_receive {:echo, "qux value=1.00000000000000000000e+00,bar=\"baz\""}
+    payload = "qux value=#{Float.to_string(1.0)},bar=\"baz\""
+    assert_receive {:echo, ^payload}
 
     refute_receive _any
     assert {:ok, pid} = Sample.start_batch("bar")
