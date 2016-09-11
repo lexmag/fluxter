@@ -50,7 +50,7 @@ defmodule Fluxter.Conn do
 
   def handle_info({:inet_reply, _sock, {:error, reason}}, conn) do
     Logger.error [
-      "Metric sending failed with reason ",
+      "Failed to send metric, reason: ",
       ?", :inet.format_error(reason), ?",
     ]
     {:noreply, conn}
