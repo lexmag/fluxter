@@ -11,7 +11,7 @@ defmodule Fluxter.Mixfile do
   end
 
   def application() do
-    [applications: [],
+    [applications: [:logger],
      env: [host: "127.0.0.1", port: 8092]]
   end
 

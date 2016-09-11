@@ -5,6 +5,8 @@ defmodule Fluxter.Conn do
 
   alias Fluxter.Packet
 
+  require Logger
+
   defstruct [:sock, :header]
 
   def new(host, port) when is_binary(host) do
@@ -42,7 +44,15 @@ defmodule Fluxter.Conn do
     {:noreply, conn}
   end
 
-  def handle_info({:inet_reply, _sock, _status}, conn) do
+  def handle_info({:inet_reply, _sock, :ok}, conn) do
+    {:noreply, conn}
+  end
+
+  def handle_info({:inet_reply, _sock, {:error, reason}}, conn) do
+    Logger.error [
+      "Metric sending failed with reason ",
+      ?", :inet.format_error(reason), ?",
+    ]
     {:noreply, conn}
   end
 end
