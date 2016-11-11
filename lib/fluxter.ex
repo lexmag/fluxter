@@ -62,10 +62,10 @@ defmodule Fluxter do
       configuring it globally for the `:fluxter` application has no
       effect. Defaults to `5`.
 
-  ## Batching
+  ## Metric aggregation
 
-  Fluxter supports "batching": a batch is a metric aggregator designed to
-  locally aggregate an numeric value and flush the aggregated value only once to
+  Fluxter supports counters: a counter is a metric aggregator designed to
+  locally aggregate a numeric value and flush the aggregated value only once to
   the storage, as a single metric. This is very useful when you have the need to
   write a high number of metrics in a very short amount of time. Doing so can
   have a negative impact on the speed of your code and can also cause network
@@ -73,19 +73,19 @@ defmodule Fluxter do
 
   For example, code like the following:
 
-      for i <- 1_000_000 do
-        my_operation(i)
+      for value <- 1..1_000_000 do
+        my_operation(value)
         MyApp.Fluxter.write("my_operation_success", [host: "eu-west"], 1)
       end
 
-  can take advantage of batching:
+  can take advantage of metric aggregation:
 
-      {:ok, batch} = MyApp.Fluxter.start_batch("my_operation_success", [host: "eu-west"])
-      for i <- 1_000_000 do
-        my_operation(i)
-        MyApp.Fluxter.write_to_batch(batch, 1)
+      counter = MyApp.Fluxter.start_counter("my_operation_success", [host: "eu-west"])
+      for value <- 1..1_000_000 do
+        my_operation(value)
+        MyApp.Fluxter.increment_counter(counter, 1)
       end
-      MyApp.Fluxter.flush_batch(batch)
+      MyApp.Fluxter.flush_counter(counter)
 
   """
 
@@ -93,6 +93,7 @@ defmodule Fluxter do
   @type tags :: [{String.Chars.t, String.Chars.t}]
   @type field_value :: number | boolean | binary
   @type fields :: [{String.Chars.t, field_value}]
+  @opaque counter :: pid
 
   @doc """
   Starts this Fluxter pool.
@@ -185,84 +186,86 @@ defmodule Fluxter do
   @callback measure(measurement, tags, fields, (() -> result)) :: result when result: var
 
   @doc """
-  Should be the same as `start_batch(measurement, [], [])`.
+  Should be the same as `start_counter(measurement, [], [])`.
   """
-  @callback start_batch(measurement) :: {:ok, pid}
+  @callback start_counter(measurement) :: counter
 
   @doc """
-  Should be the same as `start_batch(measurement, tags, [])`.
+  Should be the same as `start_counter(measurement, tags, [])`.
   """
-  @callback start_batch(measurement, tags) :: {:ok, pid}
+  @callback start_counter(measurement, tags) :: counter
 
   @doc """
-  Starts a batch for a metric.
+  Starts a counter for a metric.
 
-  The purpose of this batch is to aggregate a numeric metric: values aggregated
-  in the batch will only be written to the storage as a single metric when the
-  batch is "flushed" (see `c:flush_batch/1`). `tags` and `fields` will be tags
+  The purpose of this counter is to aggregate a numeric metric: values aggregated
+  in the counter will only be written to the storage as a single metric when the
+  counter is "flushed" (see `c:flush_counter/1`). `tags` and `fields` will be tags
   and fields attached to the metric when it's flushed. The aggregated value of
   the metric will be prepended to `fields` as a field called `value`; this means
   that if there's already a field called `value` in `fields`, it will be
   overridden.
 
-  This function returns `{:ok, pid}` where `pid` is the pid of the new batch.
+  This function spawns a process that is linked to the caller process.
+  The linking part is important because it means that if the parent process dies,
+  the counter will be terminated as well and its aggregated metric will be lost.
 
-  See the "Batching" section in the documentation for `Fluxter` for more
-  information on batches.
+  See the "Metric aggregation" section in the documentation for `Fluxter` for more
+  information on counters.
 
   ## Examples
 
   Assuming a `MyApp.Fluxter` Fluxter pool exists:
 
-      iex> MyApp.Fluxter.start_batch("hits", [host: "us-west"])
+      iex> MyApp.Fluxter.start_counter("hits", [host: "us-west"])
       {:ok, #PID<...>}
 
   """
-  @callback start_batch(measurement, tags, fields) :: {:ok, pid}
+  @callback start_counter(measurement, tags, fields) :: counter
 
   @doc """
-  Adds the `extra` value to the given `batch`.
+  Adds the `extra` value to the given `counter`.
 
   This function adds the `extra` value (a number) to the current value of the
-  given `batch`. To subtract, just use a negative number to add to the current
-  value of `batch`.
+  given `counter`. To subtract, just use a negative number to add to the current
+  value of `counter`.
 
   This function performs a *fire-and-forget* operation (a cast) on the given
-  batch, hence it will always return `:ok`.
+  counter, hence it will always return `:ok`.
 
-  See the "Batching" section in the documentation for `Fluxter` for more
-  information on batches.
+  See the "Metric aggregation" section in the documentation for `Fluxter` for more
+  information on counters.
 
   ## Examples
 
   Assuming a `MyApp.Fluxter` Fluxter pool exists:
 
-      iex> MyApp.Fluxter.write_to_batch(batch, 1)
+      iex> MyApp.Fluxter.increment_counter(counter, 1)
       :ok
 
   """
-  @callback write_to_batch(batch :: pid, extra :: number) :: :ok
+  @callback increment_counter(counter, extra :: number) :: :ok
 
   @doc """
-  Flushes the given `batch` by writing its aggregated value as a single metric.
+  Flushes the given `counter` by writing its aggregated value as a single metric.
 
   This function performs a *fire-and-forget* operation (a cast) on the given
-  batch, hence it will always return `:ok`.
+  counter, hence it will always return `:ok`.
 
-  This function will also stop the `batch` process after the metric is flushed.
+  This function will also stop the `counter` process after the metric is flushed.
 
-  See the "Batching" section in the documentation for `Fluxter` for more
-  information on batches.
+  See the "Metric aggregation" section in the documentation for `Fluxter` for more
+  information on counters.
 
   ## Examples
 
   Assuming a `MyApp.Fluxter` Fluxter pool exists:
 
-      iex> MyApp.Fluxter.flush_batch(batch)
+      iex> MyApp.Fluxter.flush_counter(counter)
       :ok
 
   """
-  @callback flush_batch(batch :: pid) :: :ok
+  @callback flush_counter(counter) :: :ok
 
   @doc false
   defmacro __using__(_opts) do
@@ -312,12 +315,17 @@ defmodule Fluxter do
         result
       end
 
-      def start_batch(measurement, tags \\ [], fields \\ []) do
-        Fluxter.Batch.start(__MODULE__, measurement, tags, fields)
+      def start_counter(measurement, tags \\ [], fields \\ []) do
+        Fluxter.Counter.start(measurement, tags, fields)
       end
 
-      defdelegate write_to_batch(batch, extra), to: Fluxter.Batch, as: :write
-      defdelegate flush_batch(batch), to: Fluxter.Batch, as: :flush
+      def increment_counter(counter, change \\ 1) do
+        Fluxter.Counter.increment(counter, change)
+      end
+
+      def flush_counter(counter) do
+        Fluxter.Counter.flush(counter, __MODULE__)
+      end
     end
   end
 
