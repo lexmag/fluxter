@@ -89,8 +89,9 @@ defmodule Fluxter do
 
   """
 
-  @type field_value :: number | boolean | binary
+  @type measurement :: String.Chars.t
   @type tags :: [{String.Chars.t, String.Chars.t}]
+  @type field_value :: number | boolean | binary
   @type fields :: [{String.Chars.t, field_value}]
 
   @doc """
@@ -118,10 +119,11 @@ defmodule Fluxter do
   @doc """
   Writes a metric to the data store.
 
-  `name` is the name of the metric to write. `tags` is a list of key-value pairs
-  that specifies tags (as name and value) for the metric to write; note that tag
-  values are converted to strings as InfluxDB only support string values for
-  tags. `fields` can either be a list of key-value pairs, in which case it
+  `measurement` is the name of the metric to write.
+  `tags` is a list of key-value pairs that specifies tags (as name and value)
+  for the data point to write; note that tag values are converted to strings
+  as InfluxDB only support string values for tags.
+  `fields` can either be a list of key-value pairs, in which case it
   specifies a list of fields (as name and value), or a single value
   (specifically, a boolean, float, integer, or binary). In the latter case, the
   default field name of `value` will be used: calling `write("foo", [], 4.3)` is
@@ -137,30 +139,28 @@ defmodule Fluxter do
       :ok
 
   """
-  @callback write(name :: String.Chars.t, tags, field_value | fields) :: :ok
+  @callback write(measurement, tags, field_value | fields) :: :ok
 
   @doc """
-  Should be the same as `write(name, [], fields)`.
+  Should be the same as `write(measurement, [], fields)`.
   """
-  @callback write(name :: String.Chars.t, field_value | fields) :: :ok
+  @callback write(measurement, field_value | fields) :: :ok
 
   @doc """
-  Should be the same as `measure(name, [], [], fun)`.
+  Should be the same as `measure(measurement, [], [], fun)`.
   """
-  @callback measure(name :: String.Chars.t, fun :: (() -> result)) ::
-    result when result: any
+  @callback measure(measurement, (() -> result)) :: result when result: var
 
   @doc """
-  Should be the same as `measure(name, tags, [], fun)`.
+  Should be the same as `measure(measurement, tags, [], fun)`.
   """
-  @callback measure(name :: String.Chars.t, tags, fun :: (() -> result)) ::
-    result when result: any
+  @callback measure(measurement, tags, (() -> result)) :: result when result: var
 
   @doc """
-  Measures the execution time of `fun` and writes it as a metric named `name`.
+  Measures the execution time of `fun` and writes it as a metric.
 
   This function is just an utility function to measure the execution time of a
-  given function `fun`. The `name` and `tags` arguments work in the same way as
+  given function `fun`. The `measurement` and `tags` arguments work in the same way as
   in `c:write/3`.
 
   `fun`'s execution time is prepended as a field called `value` to the already
@@ -182,21 +182,20 @@ defmodule Fluxter do
       2
 
   """
-  @callback measure(name :: String.Chars.t, tags, fields, fun :: (() -> result)) :: result
-    when result: any
+  @callback measure(measurement, tags, fields, (() -> result)) :: result when result: var
 
   @doc """
-  Should be the same as `start_batch(name, [], [])`.
+  Should be the same as `start_batch(measurement, [], [])`.
   """
-  @callback start_batch(name :: String.Chars.t) :: {:ok, pid}
+  @callback start_batch(measurement) :: {:ok, pid}
 
   @doc """
-  Should be the same as `start_batch(name, tags, [])`.
+  Should be the same as `start_batch(measurement, tags, [])`.
   """
-  @callback start_batch(name :: String.Chars.t, tags) :: {:ok, pid}
+  @callback start_batch(measurement, tags) :: {:ok, pid}
 
   @doc """
-  Starts a batch for a metric named `name`.
+  Starts a batch for a metric.
 
   The purpose of this batch is to aggregate a numeric metric: values aggregated
   in the batch will only be written to the storage as a single metric when the
@@ -219,7 +218,7 @@ defmodule Fluxter do
       {:ok, #PID<...>}
 
   """
-  @callback start_batch(name :: String.Chars.t, tags, fields) :: {:ok, pid}
+  @callback start_batch(measurement, tags, fields) :: {:ok, pid}
 
   @doc """
   Adds the `extra` value to the given `batch`.
@@ -291,30 +290,30 @@ defmodule Fluxter do
         end
       end
 
-      def write(name, tags \\ [], fields)
+      def write(measurement, tags \\ [], fields)
 
-      def write(name, tags, fields) when is_list(fields) do
+      def write(measurement, tags, fields) when is_list(fields) do
         System.unique_integer([:positive])
         |> rem(@pool_size)
         |> worker_name()
-        |> Fluxter.Conn.write(name, tags, fields)
+        |> Fluxter.Conn.write(measurement, tags, fields)
       end
 
-      def write(name, tags, value)
+      def write(measurement, tags, value)
       when is_float(value) or is_integer(value)
       when is_boolean(value) or is_binary(value) do
-        write(name, tags, [value: value])
+        write(measurement, tags, [value: value])
       end
 
-      def measure(name, tags \\ [], fields \\ [], fun)
+      def measure(measurement, tags \\ [], fields \\ [], fun)
       when is_function(fun, 0) do
         {elapsed, result} = :timer.tc(fun)
-        write(name, tags, [value: elapsed] ++ fields)
+        write(measurement, tags, [value: elapsed] ++ fields)
         result
       end
 
-      def start_batch(name, tags \\ [], fields \\ []) do
-        Fluxter.Batch.start(__MODULE__, name, tags, fields)
+      def start_batch(measurement, tags \\ [], fields \\ []) do
+        Fluxter.Batch.start(__MODULE__, measurement, tags, fields)
       end
 
       defdelegate write_to_batch(batch, extra), to: Fluxter.Batch, as: :write
