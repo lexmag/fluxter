@@ -5,7 +5,7 @@
 
 Fluxter is an InfluxDB writer for Elixir. It uses InfluxDB's line protocol over UDP.
 
-**NOTE**: if you're using Erlang 19 or greater, you need Fluxter 0.4.0 or greater otherwise metrics reporting will (silently) not work because of network driver changes happened between Erlang 18 and Erlang 19.
+**Note:** if you're using Erlang 19 or greater, you need Fluxter 0.4.0 or greater otherwise metrics reporting will (silently) not work because of network driver changes happened between Erlang 18 and Erlang 19.
 
 ## Installation
 
