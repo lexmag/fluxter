@@ -5,6 +5,8 @@
 
 Fluxter is an InfluxDB writer for Elixir. It uses InfluxDB's line protocol over UDP.
 
+**Note:** if you're using Erlang 19 or greater, you need Fluxter 0.4.0 or greater otherwise metrics reporting will (silently) not work because of network driver changes happened between Erlang 18 and Erlang 19.
+
 ## Installation
 
 Add Fluxter as a dependency to your `mix.exs` file:
@@ -15,7 +17,7 @@ def application() do
 end
 
 defp deps() do
-  [{:fluxter, "~> 0.1"}]
+  [{:fluxter, "~> 0.4"}]
 end
 ```
 
