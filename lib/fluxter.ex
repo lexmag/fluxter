@@ -270,7 +270,7 @@ defmodule Fluxter do
       @behaviour Fluxter
 
       @pool_size Application.get_env(__MODULE__, :pool_size, 5)
-      @worker_names Enum.map(0..(@pool_size - 1), &:'#{__MODULE__}-#{&1}')
+      @worker_names Enum.map(0..(@pool_size - 1), &:"#{__MODULE__}-#{&1}")
 
       def start_link() do
         import Supervisor.Spec
@@ -300,13 +300,13 @@ defmodule Fluxter do
       end
 
       def write(measurement, tags, value)
-      when is_float(value) or is_integer(value)
-      when is_boolean(value) or is_binary(value) do
+          when is_float(value) or is_integer(value)
+          when is_boolean(value) or is_binary(value) do
         write(measurement, tags, [value: value])
       end
 
       def measure(measurement, tags \\ [], fields \\ [], fun)
-      when is_function(fun, 0) do
+          when is_function(fun, 0) do
         {elapsed, result} = :timer.tc(fun)
         write(measurement, tags, [value: elapsed] ++ fields)
         result
