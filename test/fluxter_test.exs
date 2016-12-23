@@ -84,35 +84,53 @@ defmodule FluxterTest do
     refute_receive _any
   end
 
-  test "batch functions" do
-    assert {:ok, pid} = Sample.start_batch("foo", [bar: "baz"])
-    assert is_pid(pid)
+  test "counter functionality" do
+    counter = Sample.start_counter("bar")
 
-    assert Sample.write_to_batch(pid, 2) == :ok
+    assert is_pid(counter)
+
+    assert Sample.flush_counter(counter) == :ok
+    refute_receive _any
+    refute_alive counter
+
+    counter = Sample.start_counter("foo", [bar: "baz"])
+
+    assert Sample.increment_counter(counter, 2) == :ok
     refute_receive _any
 
-    assert Sample.write_to_batch(pid, 1) == :ok
+    assert Sample.increment_counter(counter, 1) == :ok
     refute_receive _any
 
-    assert Sample.flush_batch(pid) == :ok
+    assert Sample.flush_counter(counter) == :ok
     assert_receive {:echo, "foo,bar=baz value=3i"}
 
     refute_receive _any
-    assert {:ok, pid} = Sample.start_batch("qux", [], [bar: "baz"])
-    assert is_pid(pid)
+    refute_alive counter
 
-    assert Sample.write_to_batch(pid, 1.0) == :ok
+    counter = Sample.start_counter("qux", [], [bar: "baz"])
+
+    assert Sample.increment_counter(counter, 1.0) == :ok
     refute_receive _any
 
-    assert Sample.flush_batch(pid) == :ok
+    assert Sample.flush_counter(counter) == :ok
     payload = "qux value=#{Float.to_string(1.0)},bar=\"baz\""
     assert_receive {:echo, ^payload}
 
     refute_receive _any
-    assert {:ok, pid} = Sample.start_batch("bar")
-    assert is_pid(pid)
+    refute_alive counter
 
-    assert Sample.flush_batch(pid) == :ok
-    refute_receive _any
+    parent = self()
+    spawn(fn ->
+      counter = Sample.start_counter("bar")
+      send(parent, {:counter, counter})
+      exit(:timeout)
+    end)
+    assert_receive {:counter, counter}
+    refute_alive counter
+  end
+
+  defp refute_alive(counter) do
+    ref = Process.monitor(counter)
+    assert_receive {:DOWN, ^ref, _, _, _}, 500
   end
 end
