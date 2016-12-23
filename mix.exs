@@ -4,7 +4,7 @@ defmodule Fluxter.Mixfile do
   def project() do
     [app: :fluxter,
      name: "Fluxter",
-     version: "0.4.0",
+     version: "0.5.0",
      elixir: "~> 1.2",
      package: package(),
      description: desc(),
