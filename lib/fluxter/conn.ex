@@ -15,6 +15,12 @@ defmodule Fluxter.Conn do
 
   def new(host, port) when is_list(host) or is_tuple(host) do
     {:ok, addr} = :inet.getaddr(host, :inet)
+    port = case is_binary(port) do
+             true ->
+               {int_port, _} = Integer.parse(port)
+               int_port
+             false -> port
+           end
     header = Packet.header(addr, port)
     %__MODULE__{header: header}
   end
