@@ -96,6 +96,27 @@ defmodule Fluxter do
   @opaque counter :: pid
 
   @doc """
+  Returns a child specification for this Fluxter pool.
+
+  This is usually used to supervise this Fluxter pool under the supervision tree
+  of your application:
+
+      def start(_type, _args) do
+        children = [
+          MyApp.Fluxter.child_spec(),
+          # ...
+        ]
+        Supervisor.start_link(children, strategy: :one_for_one)
+      end
+
+  `options` is a list of options that will be used for the child
+  specification. They're the same ones that `Supervisor.Spec.supervisor/3`
+  accepts.
+
+  """
+  @callback child_spec(options :: Keyword.t) :: Supervisor.spec
+
+  @doc """
   Starts this Fluxter pool.
 
   A Fluxter pool is a set of processes supervised by a supervisor; this function
@@ -274,6 +295,10 @@ defmodule Fluxter do
 
       @pool_size Application.get_env(__MODULE__, :pool_size, 5)
       @worker_names Enum.map(0..(@pool_size - 1), &:"#{__MODULE__}-#{&1}")
+
+      def child_spec(options \\ []) do
+        Supervisor.Spec.supervisor(__MODULE__, :start_link, options)
+      end
 
       def start_link() do
         import Supervisor.Spec
