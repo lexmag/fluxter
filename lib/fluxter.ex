@@ -99,7 +99,7 @@ defmodule Fluxter do
   Starts this Fluxter pool.
 
   A Fluxter pool is a set of processes supervised by a supervisor; this function
-  starts all that processes and that supervisor.
+  starts all those processes and that supervisor.
 
   Usually, you'll want to use a Fluxter pool in the supervision tree of your
   application:
