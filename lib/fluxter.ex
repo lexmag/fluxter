@@ -13,13 +13,14 @@ defmodule Fluxter do
   pool provides a `start_link/0` function that starts that pool and connects to
   InfluxDB; this function needs to be invoked before being able to send data to
   InfluxDB. Typically, you won't call `start_link/0` directly as you'll want to
-  add Fluxter pools to your application's supervision tree; for example:
+  add Fluxter pools to your application's supervision tree. For this use case,
+  pools provide a `child_spec/1` function:
 
       def start(_type, _args) do
         import Supervisor.Spec
 
         children = [
-          supervisor(MyApp.Fluxter, []),
+          MyApp.Fluxter.child_spec(),
           # ...
         ]
         Supervisor.start_link(children, strategy: :one_for_one)
@@ -96,24 +97,38 @@ defmodule Fluxter do
   @opaque counter :: pid
 
   @doc """
-  Starts this Fluxter pool.
+  Should be the same as `child_spec([])`.
+  """
+  @callback child_spec() :: Supervisor.spec
 
-  A Fluxter pool is a set of processes supervised by a supervisor; this function
-  starts all those processes and that supervisor.
+  @doc """
+  Returns a child specification for this Fluxter pool.
 
-  Usually, you'll want to use a Fluxter pool in the supervision tree of your
-  application:
+  This is usually used to supervise this Fluxter pool under the supervision tree
+  of your application:
 
       def start(_type, _args) do
-        import Supervisor.Spec
-
         children = [
-          supervisor(MyApp.Fluxter, []),
+          MyApp.Fluxter.child_spec([]),
           # ...
         ]
         Supervisor.start_link(children, strategy: :one_for_one)
       end
 
+  `options` is a list of options that will be used for the child
+  specification. They're the same ones that `Supervisor.Spec.supervisor/3`
+  accepts.
+  """
+  @callback child_spec(options :: Keyword.t) :: Supervisor.spec
+
+  @doc """
+  Starts this Fluxter pool.
+
+  A Fluxter pool is a set of processes supervised by a supervisor; this function
+  starts all those processes and that supervisor.
+
+  If you plan on having a Fluxter pool started under your application's
+  supervision tree, use `c:child_spec/1`.
   """
   @callback start_link() :: Supervisor.on_start
 
@@ -274,6 +289,10 @@ defmodule Fluxter do
 
       @pool_size Application.get_env(__MODULE__, :pool_size, 5)
       @worker_names Enum.map(0..(@pool_size - 1), &:"#{__MODULE__}-#{&1}")
+
+      def child_spec(options \\ []) do
+        Supervisor.Spec.supervisor(__MODULE__, :start_link, options)
+      end
 
       def start_link() do
         import Supervisor.Spec
