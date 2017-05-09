@@ -24,7 +24,7 @@ defmodule Fluxter.Conn do
   end
 
   def write(worker, name, tags, fields)
-  when (is_binary(name) or is_list(name)) and is_list(tags) and is_list(fields) do
+      when (is_binary(name) or is_list(name)) and is_list(tags) and is_list(fields) do
     # TODO: Remove `try` wrapping when we depend on Elixir ~> 1.3
     try do
       GenServer.cast(worker, {:write, name, tags, fields})
