@@ -291,7 +291,7 @@ defmodule Fluxter do
       @worker_names Enum.map(0..(@pool_size - 1), &:"#{__MODULE__}-#{&1}")
 
       def child_spec(options \\ []) do
-        Supervisor.Spec.supervisor(__MODULE__, :start_link, options)
+        Supervisor.Spec.supervisor(__MODULE__, _args = [], options)
       end
 
       def start_link() do
