@@ -10,7 +10,7 @@ defmodule Fluxter.Conn do
   defstruct [:sock, :header]
 
   def new(host, port) when is_binary(host) do
-    new(String.to_char_list(host), port)
+    new(string_to_charlist(host), port)
   end
 
   def new(host, port) when is_list(host) or is_tuple(host) do
@@ -54,5 +54,11 @@ defmodule Fluxter.Conn do
       ?", :inet.format_error(reason), ?",
     ]
     {:noreply, conn}
+  end
+
+  if Version.compare(System.version(), "1.3.0") == :lt do
+    defp string_to_charlist(string), do: String.to_char_list(string)
+  else
+    defp string_to_charlist(string), do: String.to_charlist(string)
   end
 end
