@@ -283,10 +283,11 @@ defmodule Fluxter do
   @callback flush_counter(counter) :: :ok
 
   @doc false
-  defmacro __using__(_opts) do
-    quote [unquote: false, location: :keep] do
+  defmacro __using__(opts) do
+    quote bind_quoted: [opts: opts] do
       @behaviour Fluxter
 
+      @otp_app Keyword.fetch!(opts, :otp_app)
       @pool_size Application.get_env(__MODULE__, :pool_size, 5)
       @worker_names Enum.map(0..(@pool_size - 1), &:"#{__MODULE__}-#{&1}")
 
@@ -297,7 +298,7 @@ defmodule Fluxter do
       def start_link() do
         import Supervisor.Spec
 
-        {host, port, prefix} = Fluxter.config_for(__MODULE__)
+        {host, port, prefix} = Fluxter.config_for(@otp_app, __MODULE__)
         conn = Fluxter.Conn.new(host, port)
         conn = %{conn | header: [conn.header | prefix]}
 
@@ -348,20 +349,47 @@ defmodule Fluxter do
     end
   end
 
-  @doc false
-  def config_for(module) do
-    {loc_env, glob_env} =
-      Application.get_all_env(:fluxter)
-      |> Keyword.pop(module, [])
+  @optional_callbacks init: 2
+  @doc """
+  A callback executed when the fluxter starts or when configuration is read.
+  The first argument is the context the callback is being invoked. If it
+  is called because fluxter supervisor is starting, it will be `:supervisor`.
+  It will be `:dry_run` if it is called for reading configuration without
+  actually starting a process.
+  The second argument is fluxter configuration as stored in the
+  application environment. It must return `{:ok, keyword}` with the updated
+  list of configuration or `:ignore` (only in the `:supervisor` case).
+  """
+  @callback init(:supervisor | :dry_run, config :: Keyword.t) :: {:ok, Keyword.t} | :ignore
 
+  @doc false
+  def config_for(otp_app, module) do
+    fluxter_conf = Application.get_all_env(:fluxter)
+    module_conf = Application.get_env(otp_app, module)
+    {:ok, runtime_conf} = repo_init(:supervisor, module, module_conf)
+    process_config({runtime_conf, fluxter_conf})
+    |> IO.inspect()
+  end
+
+  @doc false
+  defp repo_init(type, module, config) do
+    if Code.ensure_loaded?(module) and function_exported?(module, :init, 2) do
+      module.init(type, config)
+    else
+      {:ok, config}
+    end
+  end
+
+  @doc false
+  defp process_config({loc_env, glob_env}) do
     host = loc_env[:host] || glob_env[:host]
     port = loc_env[:port] || glob_env[:port]
     prefix = make_prefix(glob_env[:prefix], loc_env[:prefix])
-
     {host, port, prefix}
   end
 
   defp make_prefix(global, local) do
     Enum.map_join([global, local], &(&1 && [&1, ?_]))
   end
+
 end
