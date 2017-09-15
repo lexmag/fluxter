@@ -368,7 +368,6 @@ defmodule Fluxter do
     module_conf = Application.get_env(otp_app, module)
     {:ok, runtime_conf} = repo_init(:supervisor, module, module_conf)
     process_config({runtime_conf, fluxter_conf})
-    |> IO.inspect()
   end
 
   @doc false
