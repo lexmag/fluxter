@@ -56,9 +56,9 @@ defmodule Fluxter.Conn do
     {:noreply, conn}
   end
 
-  if Version.compare(System.version(), "1.3.0") == :lt do
-    defp string_to_charlist(string), do: String.to_char_list(string)
-  else
+  if Version.match?(System.version(), ">= 1.3.0") do
     defp string_to_charlist(string), do: String.to_charlist(string)
+  else
+    defp string_to_charlist(string), do: String.to_char_list(string)
   end
 end
