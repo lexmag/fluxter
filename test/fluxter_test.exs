@@ -25,7 +25,7 @@ defmodule FluxterTest do
   end
 
   defmodule Sample do
-    use Fluxter
+    use Fluxter, otp_app: :fluxter_test
   end
 
   setup_all do
