@@ -297,7 +297,7 @@ defmodule Fluxter do
       def start_link() do
         import Supervisor.Spec
 
-        {host, port, prefix} = Fluxter.config_for(__MODULE__)
+        {host, port, prefix} = Fluxter.load_config(__MODULE__)
         conn = Fluxter.Conn.new(host, port)
         conn = %{conn | header: [conn.header | prefix]}
 
@@ -349,19 +349,19 @@ defmodule Fluxter do
   end
 
   @doc false
-  def config_for(module) do
+  def load_config(module) do
     {loc_env, glob_env} =
       Application.get_all_env(:fluxter)
       |> Keyword.pop(module, [])
 
     host = loc_env[:host] || glob_env[:host]
     port = loc_env[:port] || glob_env[:port]
-    prefix = make_prefix(glob_env[:prefix], loc_env[:prefix])
+    prefix = build_prefix(glob_env[:prefix], loc_env[:prefix])
 
     {host, port, prefix}
   end
 
-  defp make_prefix(global, local) do
+  defp build_prefix(global, local) do
     Enum.map_join([global, local], &(&1 && [&1, ?_]))
   end
 end
