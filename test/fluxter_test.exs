@@ -35,6 +35,10 @@ defmodule FluxterTest do
     use Fluxter
   end
 
+  defmodule FluxterXyzzy do
+    use Fluxter
+  end
+
   setup_all do
     {:ok, server} = EchoServer.start_link(8092)
     {:ok, _} = FluxterSample.start_link()
@@ -44,6 +48,17 @@ defmodule FluxterTest do
   setup %{server: server} do
     :ok = EchoServer.set_current_test(server, self())
     on_exit(fn -> EchoServer.set_current_test(server, nil) end)
+  end
+
+  test "start_link/1" do
+    {:ok, server} = EchoServer.start_link(9092)
+    :ok = EchoServer.set_current_test(server, self())
+
+    options = [port: 9092, prefix: "xyzzy"]
+    {:ok, _} = FluxterXyzzy.start_link(options)
+
+    FluxterXyzzy.write('foo', bar: 2)
+    assert_receive {:echo, "xyzzy_foo bar=2i"}
   end
 
   test "write/2,3" do
@@ -137,8 +152,8 @@ defmodule FluxterTest do
     refute_alive counter
   end
 
-  defp refute_alive(counter) do
-    ref = Process.monitor(counter)
+  defp refute_alive(pid) do
+    ref = Process.monitor(pid)
     assert_receive {:DOWN, ^ref, _, _, _}, 500
   end
 end

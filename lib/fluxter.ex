@@ -10,9 +10,9 @@ defmodule Fluxter do
       end
 
   This way, `MyApp.Fluxter` becomes an InfluxDB connection pool. Each Fluxter
-  pool provides a `start_link/0` function that starts that pool and connects to
+  pool provides a `start_link/1` function that starts that pool and connects to
   InfluxDB; this function needs to be invoked before being able to send data to
-  InfluxDB. Typically, you won't call `start_link/0` directly as you'll want to
+  InfluxDB. Typically, you won't call `start_link/1` directly as you'll want to
   add Fluxter pools to your application's supervision tree. For this use case,
   pools provide a `child_spec/1` function:
 
@@ -113,11 +113,14 @@ defmodule Fluxter do
         Supervisor.start_link(children, strategy: :one_for_one)
       end
 
-  `options` is a list of options that will be used for the child
-  specification. They're the same ones that `Supervisor.Spec.supervisor/3`
-  accepts.
+  `options` is a list of options that will be given to `start_link/1`.
   """
   @callback child_spec(options :: Keyword.t) :: Supervisor.spec
+
+  @doc """
+  Should be the same as `start_link([])`.
+  """
+  @callback start_link() :: Supervisor.on_start
 
   @doc """
   Starts this Fluxter pool.
@@ -125,10 +128,12 @@ defmodule Fluxter do
   A Fluxter pool is a set of processes supervised by a supervisor; this function
   starts all those processes and that supervisor.
 
+  The following options are supported: `:host`, `:port`, and `:prefix`.
+
   If you plan on having a Fluxter pool started under your application's
   supervision tree, use `c:child_spec/1`.
   """
-  @callback start_link() :: Supervisor.on_start
+  @callback start_link(options :: Keyword.t) :: Supervisor.on_start
 
   @doc """
   Writes a metric to the data store.
@@ -289,13 +294,20 @@ defmodule Fluxter do
       @worker_names Enum.map(0..(@pool_size - 1), &:"#{__MODULE__}-#{&1}")
 
       def child_spec(options \\ []) do
-        Supervisor.Spec.supervisor(__MODULE__, _args = [], options)
+        {child_options, options} =
+          Enum.split_with(options, fn {key, _value} ->
+            key in [:id, :start, :restart, :shutdown, :type, :modules]
+          end)
+        if child_options != [] do
+          IO.warn "passing child specification fields is deprecated"
+        end
+        Supervisor.Spec.supervisor(__MODULE__, [options], child_options)
       end
 
-      def start_link() do
+      def start_link(options \\ []) do
         import Supervisor.Spec
 
-        {host, port, prefix} = Fluxter.load_config(__MODULE__)
+        {host, port, prefix} = Fluxter.load_config(__MODULE__, options)
         conn = Fluxter.Conn.new(host, port)
         conn = %{conn | header: [conn.header | prefix]}
 
@@ -347,19 +359,19 @@ defmodule Fluxter do
   end
 
   @doc false
-  def load_config(module) do
+  def load_config(module, options) do
     {loc_env, glob_env} =
       Application.get_all_env(:fluxter)
       |> Keyword.pop(module, [])
 
-    host = loc_env[:host] || glob_env[:host]
-    port = loc_env[:port] || glob_env[:port]
-    prefix = build_prefix(glob_env[:prefix], loc_env[:prefix])
+    host = options[:host] || loc_env[:host] || glob_env[:host]
+    port = options[:port] || loc_env[:port] || glob_env[:port]
+    prefix = build_prefix(glob_env[:prefix], loc_env[:prefix], options[:prefix])
 
     {host, port, prefix}
   end
 
-  defp build_prefix(global, local) do
-    Enum.map_join([global, local], &(&1 && [&1, ?_]))
+  defp build_prefix(part1, part2, part3) do
+    Enum.map_join([part1, part2, part3], &(&1 && [&1, ?_]))
   end
 end
