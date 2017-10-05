@@ -33,14 +33,15 @@ defmodule MyApp.Fluxter do
 end
 ```
 
-Each Fluxter pool provides a `start_link/0` function that starts the pool and connects to InfluxDB; this function needs to be invoked before the pool can be used. Usually, you won't call `start_link/0` directly as you'll want to use a Fluxter pool as part of your application's supervision tree. For example:
+Each Fluxter pool provides a `start_link/0` function that starts the pool and connects to InfluxDB; this function needs to be invoked before the pool can be used.
+Typically, you won't call `start_link/0` directly as you'll want to
+add a Fluxter pool to your application's supervision tree.
+For this use case, pools provide a `child_spec/1` function:
 
 ```elixir
 def start(_type, _args) do
-  import Supervisor.Spec
-
   children = [
-    supervisor(MyApp.Fluxter, []),
+    MyApp.Fluxter.child_spec(),
     #...
   ]
   Supervisor.start_link(children, strategy: :one_for_one)

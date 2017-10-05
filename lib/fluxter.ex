@@ -17,8 +17,6 @@ defmodule Fluxter do
   pools provide a `child_spec/1` function:
 
       def start(_type, _args) do
-        import Supervisor.Spec
-
         children = [
           MyApp.Fluxter.child_spec(),
           # ...
