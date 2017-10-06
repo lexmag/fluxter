@@ -47,7 +47,7 @@ defmodule FluxterTest do
   end
 
   test "start_link/1" do
-    defmodule FluxterXyzzy do
+    defmodule OtherFluxter do
       use Fluxter
     end
 
@@ -55,13 +55,13 @@ defmodule FluxterTest do
     :ok = EchoServer.set_current_test(server, self())
 
     options = [port: 9092, prefix: "xyzzy"]
-    {:ok, _} = FluxterXyzzy.start_link(options)
+    {:ok, _} = OtherFluxter.start_link(options)
 
-    FluxterXyzzy.write('foo', bar: 2)
+    OtherFluxter.write('foo', bar: 2)
     assert_receive {:echo, "xyzzy_foo bar=2i"}
   after
-    :code.delete(FluxterXyzzy)
-    :code.purge(FluxterXyzzy)
+    :code.delete(OtherFluxter)
+    :code.purge(OtherFluxter)
   end
 
   test "write/2,3" do
