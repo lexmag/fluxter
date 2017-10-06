@@ -35,10 +35,6 @@ defmodule FluxterTest do
     use Fluxter
   end
 
-  defmodule FluxterXyzzy do
-    use Fluxter
-  end
-
   setup_all do
     {:ok, server} = EchoServer.start_link(8092)
     {:ok, _} = FluxterSample.start_link()
@@ -51,6 +47,10 @@ defmodule FluxterTest do
   end
 
   test "start_link/1" do
+    defmodule FluxterXyzzy do
+      use Fluxter
+    end
+
     {:ok, server} = EchoServer.start_link(9092)
     :ok = EchoServer.set_current_test(server, self())
 
@@ -59,6 +59,9 @@ defmodule FluxterTest do
 
     FluxterXyzzy.write('foo', bar: 2)
     assert_receive {:echo, "xyzzy_foo bar=2i"}
+  after
+    :code.delete(FluxterXyzzy)
+    :code.purge(FluxterXyzzy)
   end
 
   test "write/2,3" do
