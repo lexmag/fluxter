@@ -295,9 +295,7 @@ defmodule Fluxter do
 
       def child_spec(options \\ []) do
         {child_options, options} =
-          Enum.split_with(options, fn {key, _value} ->
-            key in [:id, :start, :restart, :shutdown, :type, :modules]
-          end)
+          Keyword.split(options, [:id, :start, :restart, :shutdown, :type, :modules])
         if child_options != [] do
           IO.warn "passing child specification fields is deprecated"
         end
