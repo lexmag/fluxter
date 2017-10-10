@@ -297,7 +297,7 @@ defmodule Fluxter do
         {child_options, options} =
           Keyword.split(options, [:id, :start, :restart, :shutdown, :type, :modules])
         if child_options != [] do
-          IO.warn "passing child specification fields is deprecated"
+          IO.warn "passing child specification options is deprecated"
         end
         Supervisor.Spec.supervisor(__MODULE__, [options], child_options)
       end
