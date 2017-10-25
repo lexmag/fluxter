@@ -305,9 +305,14 @@ defmodule Fluxter do
       def start_link(options \\ []) do
         import Supervisor.Spec
 
-        {host, port, prefix} = Fluxter.load_config(__MODULE__, options)
-        conn = Fluxter.Conn.new(host, port)
-        conn = %{conn | header: [conn.header | prefix]}
+        conn =
+          case Fluxter.load_config(__MODULE__, options) do
+            {:inet, {host, port, prefix}} ->
+              conn = Fluxter.Conn.new(host, port)
+              conn = %{conn | header: [conn.header | prefix]}
+            {:local, socket_path} ->
+              Fluxter.Conn.new(:local, socket_path)
+          end
 
         Enum.map(@worker_names, &worker(Fluxter.Conn, [conn, &1], id: &1))
         |> Supervisor.start_link(strategy: :one_for_one)
@@ -362,11 +367,18 @@ defmodule Fluxter do
       Application.get_all_env(:fluxter)
       |> Keyword.pop(module, [])
 
-    host = options[:host] || loc_env[:host] || glob_env[:host]
-    port = options[:port] || loc_env[:port] || glob_env[:port]
-    prefix = build_prefix(glob_env[:prefix], loc_env[:prefix], options[:prefix])
+    local? = options[:local] || loc_env[:local] || glob_env[:local]
 
-    {host, port, prefix}
+    if local? do
+      socket_path = options[:socket_path] || loc_env[:socket_path] || glob_env[:socket_path]
+      {:local, socket_path}
+    else
+      host = options[:host] || loc_env[:host] || glob_env[:host]
+      port = options[:port] || loc_env[:port] || glob_env[:port]
+      prefix = build_prefix(glob_env[:prefix], loc_env[:prefix], options[:prefix])
+
+      {:inet, {host, port, prefix}}
+    end
   end
 
   defp build_prefix(part1, part2, part3) do
