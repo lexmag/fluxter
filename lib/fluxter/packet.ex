@@ -17,7 +17,7 @@ defmodule Fluxter.Packet do
     ]
   end
 
-  def build(header, name, tags, fields, nil) do
+  def build(header, name, tags, fields) do
     tags   = encode_tags(tags)
     fields = encode_fields(fields)
     [header, encode_key(name), tags, ?\s, fields]

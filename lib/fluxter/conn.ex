@@ -39,7 +39,7 @@ defmodule Fluxter.Conn do
   end
 
   def handle_cast({:write, name, tags, fields}, conn) do
-    packet = Packet.build(conn.header, name, tags, fields, nil)
+    packet = Packet.build(conn.header, name, tags, fields)
     send(conn.sock, {self(), {:command, packet}})
     {:noreply, conn}
   end
