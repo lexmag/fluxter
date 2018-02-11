@@ -13,6 +13,8 @@ defmodule Fluxter.Counter do
     pid
   end
 
+  def init(state), do: {:ok, state}
+
   def increment(counter, change) when is_number(change) do
     GenServer.cast(counter, {:increment, change})
   end
