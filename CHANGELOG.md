@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.7.1
+
+  * Fixed Elixir v1.6 warnings.
+
 ## v0.7.0
 
   * Added the `Fluxter.start_link/1` callback to support runtime configuration.

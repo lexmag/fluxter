@@ -17,7 +17,7 @@ def application() do
 end
 
 defp deps() do
-  [{:fluxter, "~> 0.4"}]
+  [{:fluxter, "~> 0.7"}]
 end
 ```
 
