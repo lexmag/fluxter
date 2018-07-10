@@ -31,14 +31,7 @@ defmodule Fluxter do
 
   ## Configuration
 
-  Fluxter can be configured either globally or on a per-pool basis.
-
-  The global configuration will affect all Fluxter pools; it can be specified by
-  configuring the `:fluxter` application:
-
-      config :fluxter,
-        host: "metrics.example.com",
-        port: 1122
+  Fluxter can be configured on a per-pool basis.
 
   The per-pool configuration can be specified by configuring the pool module
   under the `:fluxter` application:
@@ -57,9 +50,8 @@ defmodule Fluxter do
       the configured Fluxter pool will be prefixed by the value of this
       option. If `nil`, metrics will not be prefixed. Defaults to `nil`.
     * `:pool_size` - (integer) the size of the connection pool for the given
-      Fluxter pool. **This option can only be configured on a per-pool basis**;
-      configuring it globally for the `:fluxter` application has no
-      effect. Defaults to `5`.
+      Fluxter pool. **This option can only be configured on a per-pool basis**.
+      Defaults to `5`.
 
   ## Metric aggregation
 
@@ -358,18 +350,29 @@ defmodule Fluxter do
 
   @doc false
   def load_config(module, options) do
-    {loc_env, glob_env} =
-      Application.get_all_env(:fluxter)
-      |> Keyword.pop(module, [])
+    validate_config!()
 
-    host = options[:host] || loc_env[:host] || glob_env[:host]
-    port = options[:port] || loc_env[:port] || glob_env[:port]
-    prefix = build_prefix(glob_env[:prefix], loc_env[:prefix], options[:prefix])
+    config = Application.get_env(:fluxter, module, [])
+
+    host = options[:host] || Keyword.get(config, :host, "127.0.0.1")
+    port = options[:port] || Keyword.get(config, :port, 8092)
+    prefix = build_prefix(config[:prefix], options[:prefix])
 
     {host, port, prefix}
   end
 
-  defp build_prefix(part1, part2, part3) do
-    Enum.map_join([part1, part2, part3], &(&1 && [&1, ?_]))
+  defp build_prefix(part1, part2) do
+    Enum.map_join([part1, part2], &(&1 && [&1, ?_]))
+  end
+
+  defp validate_config!() do
+    with :error <- Application.fetch_env(:fluxter, :host),
+         :error <- Application.fetch_env(:fluxter, :port),
+         :error <- Application.fetch_env(:fluxter, :prefix) do
+       :ok
+    else
+      {:ok, _value} ->
+        raise "global config has been removed, please use local config instead."
+    end
   end
 end
