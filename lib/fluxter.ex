@@ -356,13 +356,13 @@ defmodule Fluxter do
 
     host = options[:host] || Keyword.get(config, :host, "127.0.0.1")
     port = options[:port] || Keyword.get(config, :port, 8092)
-    prefix = build_prefix(config[:prefix], options[:prefix])
+    prefix = build_prefix([config[:prefix], options[:prefix]])
 
     {host, port, prefix}
   end
 
-  defp build_prefix(part1, part2) do
-    Enum.map_join([part1, part2], &(&1 && [&1, ?_]))
+  defp build_prefix(parts) do
+    Enum.map_join(parts, &(&1 && [&1, ?_]))
   end
 
   defp validate_config!() do
