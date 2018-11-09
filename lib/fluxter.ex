@@ -366,13 +366,15 @@ defmodule Fluxter do
   end
 
   defp validate_config!() do
-    with :error <- Application.fetch_env(:fluxter, :host),
-         :error <- Application.fetch_env(:fluxter, :port),
-         :error <- Application.fetch_env(:fluxter, :prefix) do
-       :ok
-    else
-      {:ok, _value} ->
-        raise "global config has been removed, please use local config instead."
+    validity =
+      with :error <- Application.fetch_env(:fluxter, :host),
+           :error <- Application.fetch_env(:fluxter, :port),
+           :error <- Application.fetch_env(:fluxter, :prefix) do
+         :ok
+      end
+
+    if validity == :error do
+      raise ArgumentError, "global config has been removed, please use local config instead."
     end
   end
 end
