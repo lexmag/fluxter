@@ -335,9 +335,7 @@ defmodule Fluxter do
         write(measurement, tags, [value: value])
       end
 
-      def measure(measurement, tags \\ [], fields \\ [], fun_or_mfa)
-
-      def measure(measurement, tags, fields, fun_or_mfa) do
+      def measure(measurement, tags \\ [], fields \\ [], fun_or_mfa) do
         {elapsed_time, result} =
           case fun_or_mfa do
             fun when is_function(fun, 0) ->

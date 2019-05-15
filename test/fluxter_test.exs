@@ -107,7 +107,7 @@ defmodule FluxterTest do
     refute_receive _any
   end
 
-  test "measure/2,3,4 with module, function, arguments tuple" do
+  test "measure/2,3,4 with module, function, arguments tuples" do
     mfa = {__MODULE__, :sleep_and_return, ["OK"]}
 
     result = TestFluxter.measure("foo", mfa)
