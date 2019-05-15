@@ -93,16 +93,13 @@ defmodule FluxterTest do
   end
 
   test "measure/2,3,4 with functions" do
-    result = TestFluxter.measure("foo", fn ->
-      :timer.sleep(100)
-      "OK"
-    end)
+    result = TestFluxter.measure("foo", fn -> sleep_and_return("OK") end)
+
     assert_receive {:echo, <<"foo value=10", _::4-bytes, "i">>}
     assert result == "OK"
 
     result = TestFluxter.measure("foo", [bar: "baz"], fn ->
-      :timer.sleep(100)
-      "OK"
+      sleep_and_return("OK")
     end)
     assert_receive {:echo, <<"foo,bar=baz value=10", _::4-bytes, "i">>}
     assert result == "OK"
