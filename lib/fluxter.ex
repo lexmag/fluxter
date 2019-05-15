@@ -166,23 +166,23 @@ defmodule Fluxter do
   @callback write(measurement, field_value | fields) :: :ok
 
   @doc """
-  Should be the same as `measure(measurement, [], [], fun)`.
+  Should be the same as `measure(measurement, [], [], fun_or_mfa)`.
   """
-  @callback measure(measurement, (() -> result)) :: result when result: var
+  @callback measure(measurement, (() -> result) | mfa()) :: result when result: var
 
   @doc """
-  Should be the same as `measure(measurement, tags, [], fun)`.
+  Should be the same as `measure(measurement, tags, [], fun_or_mfa)`.
   """
-  @callback measure(measurement, tags, (() -> result)) :: result when result: var
+  @callback measure(measurement, tags, (() -> result) | mfa()) :: result when result: var
 
   @doc """
-  Measures the execution time of `fun` and writes it as a metric.
+  Measures the execution time of `fun_or_mfa` and writes it as a metric.
 
   This function is just an utility function to measure the execution time of a
-  given function `fun`. The `measurement` and `tags` arguments work in the same way as
+  given function `fun_or_mfa`. The `measurement` and `tags` arguments work in the same way as
   in `c:write/3`.
 
-  `fun`'s execution time is prepended as a field called `value` to the already
+  `fun_or_mfa`'s execution time is prepended as a field called `value` to the already
   existing list of `fields`. This means that if there's already a field called
   `value` in `fields`, it will be overridden by the measurement. This also means
   that `fields` must be a list of key-value pairs (field name and value): simple
@@ -201,7 +201,7 @@ defmodule Fluxter do
       2
 
   """
-  @callback measure(measurement, tags, fields, (() -> result)) :: result when result: var
+  @callback measure(measurement, tags, fields, (() -> result) | mfa()) :: result when result: var
 
   @doc """
   Should be the same as `start_counter(measurement, [], [])`.
@@ -335,9 +335,16 @@ defmodule Fluxter do
         write(measurement, tags, [value: value])
       end
 
-      def measure(measurement, tags \\ [], fields \\ [], fun)
-          when is_function(fun, 0) do
+      def measure(measurement, tags \\ [], fields \\ [], fun_or_mfa)
+
+      def measure(measurement, tags, fields, fun) when is_function(fun, 0) do
         {elapsed, result} = :timer.tc(fun)
+        write(measurement, tags, [value: elapsed] ++ fields)
+        result
+      end
+
+      def measure(measurement, tags, fields, {module, fun, arguments}) do
+        {elapsed, result} = :timer.tc(module, fun, arguments)
         write(measurement, tags, [value: elapsed] ++ fields)
         result
       end

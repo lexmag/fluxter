@@ -92,7 +92,7 @@ defmodule FluxterTest do
     refute_receive _any
   end
 
-  test "measure/2,3,4" do
+  test "measure/2,3,4 with functions" do
     result = TestFluxter.measure("foo", fn ->
       :timer.sleep(100)
       "OK"
@@ -104,6 +104,20 @@ defmodule FluxterTest do
       :timer.sleep(100)
       "OK"
     end)
+    assert_receive {:echo, <<"foo,bar=baz value=10", _::4-bytes, "i">>}
+    assert result == "OK"
+
+    refute_receive _any
+  end
+
+  test "measure/2,3,4 with module, function, arguments tuple" do
+    mfa = {__MODULE__, :sleep_and_return, ["OK"]}
+
+    result = TestFluxter.measure("foo", mfa)
+    assert_receive {:echo, <<"foo value=10", _::4-bytes, "i">>}
+    assert result == "OK"
+
+    result = TestFluxter.measure("foo", [bar: "baz"], mfa)
     assert_receive {:echo, <<"foo,bar=baz value=10", _::4-bytes, "i">>}
     assert result == "OK"
 
@@ -158,5 +172,10 @@ defmodule FluxterTest do
   defp refute_alive(pid) do
     ref = Process.monitor(pid)
     assert_receive {:DOWN, ^ref, _, _, _}, 500
+  end
+
+  def sleep_and_return(term) do
+    :timer.sleep(100)
+    term
   end
 end
