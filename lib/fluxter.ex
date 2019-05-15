@@ -338,7 +338,7 @@ defmodule Fluxter do
       def measure(measurement, tags \\ [], fields \\ [], fun_or_mfa)
 
       def measure(measurement, tags, fields, fun_or_mfa) do
-        {elapsed, result} =
+        {elapsed_time, result} =
           case fun_or_mfa do
             fun when is_function(fun, 0) ->
               :timer.tc(fun)
@@ -347,7 +347,7 @@ defmodule Fluxter do
               :timer.tc(module, fun, arguments)
           end
 
-        write(measurement, tags, [value: elapsed] ++ fields)
+        write(measurement, tags, [value: elapsed_time] ++ fields)
         result
       end
 
