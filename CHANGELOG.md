@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.8.0
+
+  * Added support for module, function, arguments tuple in `Fluxter.measure/4`.
+
 ## v0.7.1
 
   * Fixed Elixir v1.6 warnings.
