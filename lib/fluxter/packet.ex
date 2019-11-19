@@ -1,12 +1,10 @@
 defmodule Fluxter.Packet do
   @moduledoc false
 
-  use Bitwise
-
-  def build(name, tags, fields) do
+  def build(prefix, name, tags, fields) do
     tags   = encode_tags(tags)
     fields = encode_fields(fields)
-    [encode_key(name), tags, ?\s, fields]
+    [prefix, encode_key(name), tags, ?\s, fields]
   end
 
   defp encode_tags([]), do: ""

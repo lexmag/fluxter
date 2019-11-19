@@ -306,8 +306,7 @@ defmodule Fluxter do
         import Supervisor.Spec
 
         {host, port, prefix} = Fluxter.load_config(__MODULE__, options)
-        conn = Fluxter.Conn.new(host, port)
-        conn = %{conn | header: [conn.header | prefix]}
+        conn = Fluxter.Conn.new(host, port, prefix)
 
         Enum.map(@worker_names, &worker(Fluxter.Conn, [conn, &1], id: &1))
         |> Supervisor.start_link(strategy: :one_for_one)
