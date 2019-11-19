@@ -5,6 +5,8 @@
 
 Fluxter is an InfluxDB writer for Elixir. It uses InfluxDB's line protocol over UDP.
 
+**Important:** this is a forked version with a fix for an error with Fluxter and ERTS >= 10.5.3. Originally, Fluxter would include a hardcoded binary header to each write. This header contains the binary represetation of the destination IP address, port, and optionally a prefix. The write itself was being issued as a plain `send` to the port that was failing with error `einval`. We believe that there was a change in the way ERTS expects this header to be formatted. We patched Fluxter to use `:gen_udp.send/4` and drop the binary header to fix the issue.
+
 **Note:** if you're using Erlang 19 or greater, you need Fluxter 0.4.0 or greater otherwise metrics reporting will (silently) not work because of network driver changes happened between Erlang 18 and Erlang 19.
 
 ## Installation
