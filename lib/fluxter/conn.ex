@@ -10,7 +10,7 @@ defmodule Fluxter.Conn do
   defstruct [:sock, :header]
 
   def new(host, port) when is_binary(host) do
-    new(string_to_charlist(host), port)
+    new(String.to_charlist(host), port)
   end
 
   def new(host, port) when is_list(host) or is_tuple(host) do
@@ -25,12 +25,7 @@ defmodule Fluxter.Conn do
 
   def write(worker, name, tags, fields)
       when (is_binary(name) or is_list(name)) and is_list(tags) and is_list(fields) do
-    # TODO: Remove `try` wrapping when we depend on Elixir ~> 1.3
-    try do
-      GenServer.cast(worker, {:write, name, tags, fields})
-    catch
-      _, _ -> :ok
-    end
+    GenServer.cast(worker, {:write, name, tags, fields})
   end
 
   def init(conn) do
@@ -57,11 +52,5 @@ defmodule Fluxter.Conn do
     ])
 
     {:noreply, conn}
-  end
-
-  if Version.match?(System.version(), ">= 1.3.0") do
-    defp string_to_charlist(string), do: String.to_charlist(string)
-  else
-    defp string_to_charlist(string), do: String.to_char_list(string)
   end
 end

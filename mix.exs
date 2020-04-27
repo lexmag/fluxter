@@ -6,7 +6,7 @@ defmodule Fluxter.Mixfile do
       app: :fluxter,
       name: "Fluxter",
       version: "0.8.1",
-      elixir: "~> 1.2",
+      elixir: "~> 1.3",
       package: package(),
       description: desc(),
       deps: deps()
