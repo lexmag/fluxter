@@ -88,16 +88,16 @@ defmodule Fluxter do
 
   """
 
-  @type measurement :: String.Chars.t
-  @type tags :: [{String.Chars.t, String.Chars.t}]
+  @type measurement :: String.Chars.t()
+  @type tags :: [{String.Chars.t(), String.Chars.t()}]
   @type field_value :: number | boolean | binary
-  @type fields :: [{String.Chars.t, field_value}]
+  @type fields :: [{String.Chars.t(), field_value}]
   @opaque counter :: pid
 
   @doc """
   Should be the same as `child_spec([])`.
   """
-  @callback child_spec() :: Supervisor.spec
+  @callback child_spec() :: Supervisor.spec()
 
   @doc """
   Returns a child specification for this Fluxter pool.
@@ -115,12 +115,12 @@ defmodule Fluxter do
 
   `options` is a list of options that will be given to `start_link/1`.
   """
-  @callback child_spec(options :: Keyword.t) :: Supervisor.spec
+  @callback child_spec(options :: Keyword.t()) :: Supervisor.spec()
 
   @doc """
   Should be the same as `start_link([])`.
   """
-  @callback start_link() :: Supervisor.on_start
+  @callback start_link() :: Supervisor.on_start()
 
   @doc """
   Starts this Fluxter pool.
@@ -133,7 +133,7 @@ defmodule Fluxter do
   If you plan on having a Fluxter pool started under your application's
   supervision tree, use `c:child_spec/1`.
   """
-  @callback start_link(options :: Keyword.t) :: Supervisor.on_start
+  @callback start_link(options :: Keyword.t()) :: Supervisor.on_start()
 
   @doc """
   Writes a metric to the data store.
@@ -287,7 +287,7 @@ defmodule Fluxter do
 
   @doc false
   defmacro __using__(_opts) do
-    quote [unquote: false, location: :keep] do
+    quote unquote: false, location: :keep do
       @behaviour Fluxter
 
       @pool_size Application.get_env(__MODULE__, :pool_size, 5)
@@ -296,9 +296,11 @@ defmodule Fluxter do
       def child_spec(options \\ []) do
         {child_options, options} =
           Keyword.split(options, [:id, :start, :restart, :shutdown, :type, :modules])
+
         if child_options != [] do
-          IO.warn "passing child specification options is deprecated"
+          IO.warn("passing child specification options is deprecated")
         end
+
         Supervisor.Spec.supervisor(__MODULE__, [options], child_options)
       end
 
@@ -332,7 +334,7 @@ defmodule Fluxter do
       def write(measurement, tags, value)
           when is_float(value) or is_integer(value)
           when is_boolean(value) or is_binary(value) do
-        write(measurement, tags, [value: value])
+        write(measurement, tags, value: value)
       end
 
       def measure(measurement, tags \\ [], fields \\ [], fun_or_mfa) do

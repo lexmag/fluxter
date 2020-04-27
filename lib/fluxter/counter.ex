@@ -6,8 +6,7 @@ defmodule Fluxter.Counter do
   defstruct [:measurement, :tags, :fields, value: 0, flush?: false]
 
   def start(measurement, tags, fields)
-      when is_list(tags) and is_list(fields) and
-           (is_binary(measurement) or is_list(measurement)) do
+      when is_list(tags) and is_list(fields) and (is_binary(measurement) or is_list(measurement)) do
     state = %__MODULE__{measurement: measurement, tags: tags, fields: fields}
     {:ok, pid} = GenServer.start_link(__MODULE__, state)
     pid

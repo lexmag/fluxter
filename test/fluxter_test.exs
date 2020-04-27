@@ -98,9 +98,11 @@ defmodule FluxterTest do
     assert_receive {:echo, <<"foo value=10", _::4-bytes, "i">>}
     assert result == "OK"
 
-    result = TestFluxter.measure("foo", [bar: "baz"], fn ->
-      sleep_and_return("OK")
-    end)
+    result =
+      TestFluxter.measure("foo", [bar: "baz"], fn ->
+        sleep_and_return("OK")
+      end)
+
     assert_receive {:echo, <<"foo,bar=baz value=10", _::4-bytes, "i">>}
     assert result == "OK"
 
@@ -128,9 +130,9 @@ defmodule FluxterTest do
 
     assert TestFluxter.flush_counter(counter) == :ok
     refute_receive _any
-    refute_alive counter
+    refute_alive(counter)
 
-    counter = TestFluxter.start_counter("foo", [bar: "baz"])
+    counter = TestFluxter.start_counter("foo", bar: "baz")
 
     assert TestFluxter.increment_counter(counter, 2) == :ok
     refute_receive _any
@@ -142,9 +144,9 @@ defmodule FluxterTest do
     assert_receive {:echo, "foo,bar=baz value=3i"}
 
     refute_receive _any
-    refute_alive counter
+    refute_alive(counter)
 
-    counter = TestFluxter.start_counter("qux", [], [bar: "baz"])
+    counter = TestFluxter.start_counter("qux", [], bar: "baz")
 
     assert TestFluxter.increment_counter(counter, 1.0) == :ok
     refute_receive _any
@@ -154,16 +156,18 @@ defmodule FluxterTest do
     assert_receive {:echo, ^payload}
 
     refute_receive _any
-    refute_alive counter
+    refute_alive(counter)
 
     parent = self()
+
     spawn(fn ->
       counter = TestFluxter.start_counter("bar")
       send(parent, {:counter, counter})
       exit(:timeout)
     end)
+
     assert_receive {:counter, counter}
-    refute_alive counter
+    refute_alive(counter)
   end
 
   defp refute_alive(pid) do

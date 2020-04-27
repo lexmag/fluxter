@@ -20,7 +20,7 @@ defmodule Fluxter.Conn do
   end
 
   def start_link(%__MODULE__{} = conn, worker) do
-    GenServer.start_link(__MODULE__, conn, [name: worker])
+    GenServer.start_link(__MODULE__, conn, name: worker)
   end
 
   def write(worker, name, tags, fields)
@@ -34,7 +34,7 @@ defmodule Fluxter.Conn do
   end
 
   def init(conn) do
-    {:ok, sock} = :gen_udp.open(0, [active: false])
+    {:ok, sock} = :gen_udp.open(0, active: false)
     {:ok, %{conn | sock: sock}}
   end
 
@@ -49,10 +49,13 @@ defmodule Fluxter.Conn do
   end
 
   def handle_info({:inet_reply, _sock, {:error, reason}}, conn) do
-    Logger.error [
+    Logger.error([
       "Failed to send metric, reason: ",
-      ?", :inet.format_error(reason), ?",
-    ]
+      ?",
+      :inet.format_error(reason),
+      ?"
+    ])
+
     {:noreply, conn}
   end
 
