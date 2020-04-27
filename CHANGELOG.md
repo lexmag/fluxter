@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.8.1
+
+  * Fixed port command for OTP versions that support ancillary data sending.
+
 ## v0.8.0
 
   * Added support for module, function, arguments tuple in `Fluxter.measure/4`.
