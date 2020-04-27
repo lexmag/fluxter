@@ -1,6 +1,6 @@
 language: elixir
 
-dist: trusty
+sudo: false
 
 branches:
   only:
@@ -12,7 +12,5 @@ matrix:
       elixir: 1.2.6
     - otp_release: 19.3
       elixir: 1.4.2
-
-sudo: false
 
 script: mix test --trace
