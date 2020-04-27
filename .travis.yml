@@ -2,6 +2,10 @@ language: elixir
 
 dist: trusty
 
+branches:
+  only:
+    - master
+
 matrix:
   include:
     - otp_release: 18.3
