@@ -307,11 +307,15 @@ defmodule Fluxter do
       def start_link(options \\ []) do
         import Supervisor.Spec
 
-        {host, port, prefix} = Fluxter.load_config(__MODULE__, options)
-        conn = Fluxter.Conn.new(host, port)
-        conn = %{conn | header: [conn.header | prefix]}
+        config = Fluxter.get_config(__MODULE__, options)
 
-        Enum.map(@worker_names, &worker(Fluxter.Conn, [conn, &1], id: &1))
+        conn =
+          config.host
+          |> Fluxter.Conn.new(config.port)
+          |> Map.update!(:header, &[&1 | config.prefix])
+
+        @worker_names
+        |> Enum.map(&worker(Fluxter.Conn, [conn, &1], id: &1))
         |> Supervisor.start_link(strategy: :one_for_one)
       end
 
@@ -325,7 +329,8 @@ defmodule Fluxter do
       def write(measurement, tags \\ [], fields)
 
       def write(measurement, tags, fields) when is_list(fields) do
-        System.unique_integer([:positive])
+        [:positive]
+        |> System.unique_integer()
         |> rem(@pool_size)
         |> worker_name()
         |> Fluxter.Conn.write(measurement, tags, fields)
@@ -366,19 +371,31 @@ defmodule Fluxter do
   end
 
   @doc false
-  def load_config(module, options) do
-    {loc_env, glob_env} =
-      Application.get_all_env(:fluxter)
+  def get_config(module, overrides) do
+    {module_env, global_env} =
+      :fluxter
+      |> Application.get_all_env()
       |> Keyword.pop(module, [])
 
-    host = options[:host] || loc_env[:host] || glob_env[:host]
-    port = options[:port] || loc_env[:port] || glob_env[:port]
-    prefix = build_prefix(glob_env[:prefix], loc_env[:prefix], options[:prefix])
+    env = module_env ++ global_env
+    options = overrides ++ env
 
-    {host, port, prefix}
+    %{
+      prefix: build_prefix(env, overrides),
+      host: Keyword.get(options, :host, "127.0.0.1"),
+      port: Keyword.get(options, :port, 8125)
+    }
   end
 
-  defp build_prefix(part1, part2, part3) do
-    Enum.map_join([part1, part2, part3], &(&1 && [&1, ?_]))
+  defp build_prefix(env, overrides) do
+    case Keyword.fetch(overrides, :prefix) do
+      {:ok, prefix} ->
+        [prefix, ?_]
+
+      :error ->
+        env
+        |> Keyword.get_values(:prefix)
+        |> Enum.map_join(&(&1 && [&1, ?_]))
+    end
   end
 end
