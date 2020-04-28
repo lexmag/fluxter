@@ -19,6 +19,8 @@ Then run `mix deps.get` in your shell to fetch the dependencies.
 
 ## Usage
 
+See [the documentation](https://hexdocs.pm/fluxter) for detailed usage information.
+
 A module that uses Fluxter becomes an InfluxDB connection pool:
 
 ```elixir
@@ -43,8 +45,6 @@ end
 ```
 
 Once the Fluxter pool is started, its `write/2,3`, `measure/2,3,4`, and other functions can successfully be used to send points to the data store.
-
-See [the documentation](https://hexdocs.pm/fluxter) for detailed usage information.
 
 ## License
 

@@ -1,5 +1,7 @@
 # Changelog
 
+## v0.9.0
+
   * Fixed prefix building when start options provided.
   * Dropped support for Elixir v1.2.
 
