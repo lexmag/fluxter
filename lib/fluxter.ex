@@ -10,7 +10,7 @@ defmodule Fluxter do
       end
 
   This way, `MyApp.Fluxter` becomes an InfluxDB connection pool. Each Fluxter
-  pool provides a `start_link/1` function that starts that pool and connects to
+  pool provides a `c:start_link/1` function that starts that pool and connects to
   InfluxDB; this function needs to be invoked before being able to send data to
   InfluxDB. Typically, you won't call `start_link/1` directly as you'll want to
   add Fluxter pools to your application's supervision tree. For this use case,
@@ -24,10 +24,10 @@ defmodule Fluxter do
         Supervisor.start_link(children, strategy: :one_for_one)
       end
 
-  Once a Fluxter pool is started, its `write/2,3` and `measure/2,3,4` functions
-  can successfully be used to send points to the data store. A Fluxter pool
-  implements the `Fluxter` behaviour, so you can read documentation for the
-  callbacks the behaviour provides to know more about these functions.
+  Once a Fluxter pool is started, its `c:write/2,3`, `c:measure/2,3,4`, and other
+  functions can successfully be used to send points to the data store.
+  A Fluxter pool implements the `Fluxter` behaviour, so you can read documentation
+  for the callbacks the behaviour provides to know more about these functions.
 
   ## Configuration
 
@@ -113,7 +113,7 @@ defmodule Fluxter do
         Supervisor.start_link(children, strategy: :one_for_one)
       end
 
-  `options` is a list of options that will be given to `start_link/1`.
+  `options` is a list of options that will be given to `c:start_link/1`.
   """
   @callback child_spec(options :: Keyword.t()) :: Supervisor.spec()
 

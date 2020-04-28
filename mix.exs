@@ -1,15 +1,23 @@
 defmodule Fluxter.Mixfile do
   use Mix.Project
 
+  @version "0.8.1"
+  @source_url "https://github.com/lexmag/fluxter"
+
   def project() do
     [
       app: :fluxter,
-      name: "Fluxter",
-      version: "0.8.1",
+      version: @version,
       elixir: "~> 1.3",
+      deps: deps(),
+
+      # Hex
       package: package(),
       description: desc(),
-      deps: deps()
+
+      # Docs
+      name: "Fluxter",
+      docs: docs()
     ]
   end
 
@@ -25,11 +33,23 @@ defmodule Fluxter.Mixfile do
     [
       maintainers: ["Aleksei Magusev", "Andrea Leopardi"],
       licenses: ["ISC"],
-      links: %{"GitHub" => "https://github.com/lexmag/fluxter"}
+      links: %{"GitHub" => @source_url}
     ]
   end
 
   defp deps() do
-    [{:ex_doc, "~> 0.15", only: :dev}]
+    [{:ex_doc, "~> 0.20.0", only: :dev}]
+  end
+
+  defp docs() do
+    [
+      main: "Fluxter",
+      source_ref: "v#{@version}",
+      source_url: @source_url,
+      extras: [
+        "README.md",
+        "CHANGELOG.md"
+      ]
+    ]
   end
 end
