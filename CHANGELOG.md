@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.9.1
+
+  * Fixed the order when building prefix.
+
 ## v0.9.0
 
   * Fixed prefix building when start options provided.
