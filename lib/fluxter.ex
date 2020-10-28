@@ -395,6 +395,7 @@ defmodule Fluxter do
       :error ->
         env
         |> Keyword.get_values(:prefix)
+        |> Enum.reverse()
         |> Enum.map_join(&(&1 && [&1, ?_]))
     end
   end

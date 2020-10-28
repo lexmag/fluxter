@@ -26,7 +26,7 @@ defmodule Fluxter.Mixfile do
   end
 
   defp desc() do
-    "An InfluxDB writer for Elixir"
+    "Fast and reliable InfluxDB writer for Elixir."
   end
 
   defp package() do

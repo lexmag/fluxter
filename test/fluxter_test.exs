@@ -12,11 +12,13 @@ defmodule FluxterTest do
       GenServer.call(server, {:set_current_test, test})
     end
 
+    @impl true
     def init(port) do
       {:ok, socket} = :gen_udp.open(port, [:binary, active: true])
       {:ok, %{socket: socket, test: nil}}
     end
 
+    @impl true
     def handle_call({:set_current_test, current_test}, _from, %{test: test} = state) do
       if is_nil(test) or is_nil(current_test) do
         {:reply, :ok, %{state | test: current_test}}
@@ -25,6 +27,7 @@ defmodule FluxterTest do
       end
     end
 
+    @impl true
     def handle_info({:udp, socket, _, _, packet}, %{socket: socket, test: test} = state) do
       send(test, {:echo, packet})
       {:noreply, state}
@@ -44,6 +47,33 @@ defmodule FluxterTest do
   setup %{server: server} do
     :ok = EchoServer.set_current_test(server, self())
     on_exit(fn -> EchoServer.set_current_test(server, nil) end)
+  end
+
+  test "get_config/2" do
+    config = [
+      {TestFluxter,
+       [
+         host: "tortoise.tld",
+         port: 2233,
+         prefix: "bar"
+       ]},
+      host: "hare.tld",
+      port: 1122,
+      prefix: "foo"
+    ]
+
+    # TODO: Use put_all_env/3 with Elixir v1.9 and higher.
+    for {key, value} <- config, do: Application.put_env(:fluxter, key, value)
+
+    try do
+      assert Fluxter.get_config(TestFluxter, []) == %{
+               host: "tortoise.tld",
+               port: 2233,
+               prefix: "foo_bar_"
+             }
+    after
+      for {key, _} <- config, do: Application.delete_env(:fluxter, key)
+    end
   end
 
   test "start_link/1" do
