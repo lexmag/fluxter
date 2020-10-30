@@ -3,7 +3,7 @@
 ![CI Status](https://github.com/lexmag/fluxter/workflows/CI/badge.svg)
 [![Hex Version](https://img.shields.io/hexpm/v/fluxter.svg "Hex Version")](https://hex.pm/packages/fluxter)
 
-Fluxter is an InfluxDB writer for Elixir. It uses InfluxDB's line protocol over UDP.
+Fluxter is an [InfluxDB](https://www.influxdata.com/) writer for Elixir. It uses the InfluxDB line protocol over UDP.
 
 ## Installation
 
