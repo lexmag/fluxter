@@ -1,6 +1,6 @@
 # Fluxter
 
-[![Build Status](https://travis-ci.org/lexmag/fluxter.svg?branch=master "Build Status")](https://travis-ci.org/lexmag/fluxter)
+![CI Status](https://github.com/lexmag/fluxter/workflows/CI/badge.svg)
 [![Hex Version](https://img.shields.io/hexpm/v/fluxter.svg "Hex Version")](https://hex.pm/packages/fluxter)
 
 Fluxter is an InfluxDB writer for Elixir. It uses InfluxDB's line protocol over UDP.
