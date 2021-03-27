@@ -20,7 +20,7 @@ jobs:
           otp-version: 21.3
           elixir-version: 1.7
 
-        run: mix deps.get
+      - run: mix deps.get
 
       - name: Check format
         run: mix format --check-formatted
