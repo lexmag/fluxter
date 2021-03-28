@@ -37,7 +37,7 @@ For this use case, pools provide a `child_spec/1` function:
 ```elixir
 def start(_type, _args) do
   children = [
-    MyApp.Fluxter.child_spec(),
+    MyApp.Fluxter,
     #...
   ]
   Supervisor.start_link(children, strategy: :one_for_one)
