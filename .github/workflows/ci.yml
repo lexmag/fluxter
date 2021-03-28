@@ -20,7 +20,8 @@ jobs:
           otp-version: 23
           elixir-version: 1.11
 
-      - run: mix deps.get
+      - name: Check unused dependencies
+        run: mix deps.get && mix deps.unlock --check-unused
 
       - name: Check format
         run: mix format --check-formatted
