@@ -291,8 +291,9 @@ defmodule Fluxter do
       def child_spec() do
         IO.warn(
           "#{inspect(__MODULE__)}.child_spec/0 is deprecated. " <>
-          "Use the new child specifications outlined in the Supervisor module instead"
+            "Use the new child specifications outlined in the Supervisor module instead"
         )
+
         child_spec([])
       end
 
