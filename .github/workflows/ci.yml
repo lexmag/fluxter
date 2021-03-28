@@ -37,8 +37,8 @@ jobs:
         versions:
           - otp: 18.3
             elixir: 1.5
-          - otp-version: 23
-            elixir-version: 1.11
+          - otp: 23
+            elixir: 1.11
 
     env:
       MIX_ENV: test
