@@ -13,12 +13,11 @@ defmodule Fluxter do
   pool provides a `c:start_link/1` function that starts that pool and connects to
   InfluxDB; this function needs to be invoked before being able to send data to
   InfluxDB. Typically, you won't call `start_link/1` directly as you'll want to
-  add Fluxter pools to your application's supervision tree. For this use case,
-  pools provide a `child_spec/1` function:
+  add Fluxter pools to your application's supervision tree:
 
       def start(_type, _args) do
         children = [
-          MyApp.Fluxter.child_spec(),
+          MyApp.Fluxter,
           # ...
         ]
         Supervisor.start_link(children, strategy: :one_for_one)
@@ -95,11 +94,6 @@ defmodule Fluxter do
   @opaque counter :: pid
 
   @doc """
-  Should be the same as `child_spec([])`.
-  """
-  @callback child_spec() :: Supervisor.spec()
-
-  @doc """
   Returns a child specification for this Fluxter pool.
 
   This is usually used to supervise this Fluxter pool under the supervision tree
@@ -107,7 +101,7 @@ defmodule Fluxter do
 
       def start(_type, _args) do
         children = [
-          MyApp.Fluxter.child_spec([]),
+          MyApp.Fluxter,
           # ...
         ]
         Supervisor.start_link(children, strategy: :one_for_one)
@@ -115,7 +109,7 @@ defmodule Fluxter do
 
   `options` is a list of options that will be given to `c:start_link/1`.
   """
-  @callback child_spec(options :: Keyword.t()) :: Supervisor.spec()
+  @callback child_spec(options :: Keyword.t()) :: Supervisor.child_spec()
 
   @doc """
   Should be the same as `start_link([])`.
@@ -293,15 +287,21 @@ defmodule Fluxter do
       @pool_size Application.get_env(__MODULE__, :pool_size, 5)
       @worker_names Enum.map(0..(@pool_size - 1), &:"#{__MODULE__}-#{&1}")
 
-      def child_spec(options \\ []) do
-        {child_options, options} =
-          Keyword.split(options, [:id, :start, :restart, :shutdown, :type, :modules])
+      @doc false
+      def child_spec() do
+        IO.warn(
+          "#{inspect(__MODULE__)}.child_spec/0 is deprecated. " <>
+          "Use the new child specifications outlined in the Supervisor module instead"
+        )
+        child_spec([])
+      end
 
-        if child_options != [] do
-          IO.warn("passing child specification options is deprecated")
-        end
-
-        Supervisor.Spec.supervisor(__MODULE__, [options], child_options)
+      def child_spec(options) do
+        %{
+          id: __MODULE__,
+          start: {__MODULE__, :start_link, [options]},
+          type: :supervisor
+        }
       end
 
       def start_link(options \\ []) do
@@ -315,7 +315,9 @@ defmodule Fluxter do
           |> Map.update!(:header, &[&1 | config.prefix])
 
         @worker_names
-        |> Enum.map(&worker(Fluxter.Conn, [conn, &1], id: &1))
+        |> Enum.map(fn name ->
+          %{id: name, start: {Fluxter.Conn, :start_link, [conn, name]}}
+        end)
         |> Supervisor.start_link(strategy: :one_for_one)
       end
 
