@@ -17,8 +17,8 @@ jobs:
       - name: Set up Elixir environment
         uses: erlef/setup-elixir@v1
         with:
-          otp-version: 21.3
-          elixir-version: 1.7
+          otp-version: 23
+          elixir-version: 1.11
 
       - run: mix deps.get
 
@@ -37,8 +37,8 @@ jobs:
         versions:
           - otp: 18.3
             elixir: 1.5
-          - otp: 21.3
-            elixir: 1.7
+          - otp-version: 23
+            elixir-version: 1.11
 
     env:
       MIX_ENV: test
