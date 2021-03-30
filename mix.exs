@@ -1,7 +1,7 @@
 defmodule Fluxter.Mixfile do
   use Mix.Project
 
-  @version "0.9.1"
+  @version "0.10.0"
   @source_url "https://github.com/lexmag/fluxter"
 
   def project() do
@@ -26,7 +26,7 @@ defmodule Fluxter.Mixfile do
   end
 
   defp desc() do
-    "Fast and reliable InfluxDB writer for Elixir."
+    "High-performance and reliable InfluxDB writer for Elixir."
   end
 
   defp package() do
@@ -38,7 +38,7 @@ defmodule Fluxter.Mixfile do
   end
 
   defp deps() do
-    [{:ex_doc, "~> 0.20.0", only: :dev}]
+    [{:ex_doc, "~> 0.20.0", only: :dev, runtime: false}]
   end
 
   defp docs() do

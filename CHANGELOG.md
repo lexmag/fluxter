@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.10.0
+
+  * Dropped support for Elixir versions older than 1.5.
+
 ## v0.9.1
 
   * Fixed the order when building prefix.
