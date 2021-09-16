@@ -1,5 +1,6 @@
 defmodule FluxterTest do
   use ExUnit.Case
+  import ExUnit.CaptureLog
 
   defmodule EchoServer do
     use GenServer
@@ -119,16 +120,42 @@ defmodule FluxterTest do
     TestFluxter.write("foo", [bar: "baz", qux: "baz"], 0)
     assert_receive {:echo, "foo,bar=baz,qux=baz value=0i"}
 
+    refute_receive _any
+  end
 
-    timestamp_milli_secs = 1415521167028459
+  test "write/2,3 with timestamp default precision: milliseconds" do
+    timestamp_milli_secs = 1_415_521_167_028
     TestFluxter.write("foo", [bar: "baz", qux: "baz"], 0, timestamp_milli_secs)
 
-    timestamp_nanoseconds = (timestamp_milli_secs * 1_000_000)
-      |> Integer.to_string()
+    assert_receive {:echo, "foo,bar=baz,qux=baz value=0i " <> sent_timestamp}
 
-    expected_line_msg = "foo,bar=baz,qux=baz value=0i #{timestamp_nanoseconds}"
+    assert sent_timestamp
+           |> String.to_integer()
+           |> DateTime.from_unix!(:nanosecond)
+
+    refute_receive _any
+  end
+
+  test "write/2,3 with timestamp custom precision: microseconds" do
+    timestamp_micro_secs = 1_415_521_167_028_459
+    TestFluxter.write("foo", [bar: "baz", qux: "baz"], 0, timestamp_micro_secs, :microsecond)
+
+    expected_line_msg = "foo,bar=baz,qux=baz value=0i #{timestamp_micro_secs * 1_000}"
 
     assert_receive {:echo, ^expected_line_msg}
+
+    refute_receive _any
+  end
+
+  test "write/2,3 if invalid timestamp supplied, skip it with warning" do
+    invalid_timestamp = 1_415_521_167_028_459
+
+    assert capture_log(fn ->
+             TestFluxter.write("foo", [bar: "baz", qux: "baz"], 0, invalid_timestamp)
+
+             assert_receive {:echo, "foo,bar=baz,qux=baz value=0i"}
+           end) =~
+             "[warn]  Failed to parse provided timestamp: invalid_unix_time, skipping timestamp"
 
     refute_receive _any
   end

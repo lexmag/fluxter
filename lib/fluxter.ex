@@ -329,21 +329,20 @@ defmodule Fluxter do
         end
       end
 
-      def write(measurement, tags \\ [], fields) do
-        write(measurement, tags, fields, nil)
-      end
+      @spec write(String.t(), list(), list(), integer() | nil, System.time_unit()) :: :ok
+      def write(measurement, tags \\ [], fields, timestamp \\ nil, timestamp_unit \\ :millisecond)
 
-      def write(measurement, tags, fields, timestamp_milli_secs) when is_list(fields) do
+      def write(measurement, tags, fields, timestamp, timestamp_unit) when is_list(fields) do
         System.unique_integer([:positive])
         |> rem(@pool_size)
         |> worker_name()
-        |> Fluxter.Conn.write(measurement, tags, fields, timestamp_milli_secs)
+        |> Fluxter.Conn.write(measurement, tags, fields, timestamp, timestamp_unit)
       end
 
-      def write(measurement, tags, value, timestamp_milli_secs)
+      def write(measurement, tags, value, timestamp, timestamp_unit)
           when is_float(value) or is_integer(value)
           when is_boolean(value) or is_binary(value) do
-        write(measurement, tags, [value: value], timestamp_milli_secs)
+        write(measurement, tags, [value: value], timestamp, timestamp_unit)
       end
 
       def measure(measurement, tags \\ [], fields \\ [], fun_or_mfa) do

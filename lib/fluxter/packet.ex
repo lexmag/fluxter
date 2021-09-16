@@ -2,6 +2,7 @@ defmodule Fluxter.Packet do
   @moduledoc false
 
   use Bitwise
+  require Logger
 
   otp_release = :erlang.system_info(:otp_release)
   @addr_family if(otp_release >= '19', do: [1], else: [])
@@ -27,22 +28,31 @@ defmodule Fluxter.Packet do
       ] ++ anc_data_part
   end
 
-  def build(header, name, tags, fields, unix_timestamp_ms) do
+  def build(header, name, tags, fields, nil, _) do
+    build(header, name, tags, fields)
+  end
+
+  def build(header, name, tags, fields, timestamp, timestamp_unit) do
+    case to_nanoseconds(timestamp, timestamp_unit) do
+      {:ok, nanoseconds} ->
+        build(header, name, tags, fields) ++ [?\s, to_string(nanoseconds)]
+
+      {:error, reason} ->
+        Logger.warning("Failed to parse provided timestamp: #{reason}, skipping timestamp")
+        build(header, name, tags, fields)
+    end
+  end
+
+  defp build(header, name, tags, fields) do
     tags = encode_tags(tags)
     fields = encode_fields(fields)
 
-    case is_nil(unix_timestamp_ms) do
-      true ->
-        [header, encode_key(name), tags, ?\s, fields]
+    [header, encode_key(name), tags, ?\s, fields]
+  end
 
-      false ->
-        # Convert time to nanoseconds, which is the precision influxdb uses
-        unix_timestamp_nano_secs =
-          unix_timestamp_ms
-          |> Kernel.*(1_000_000)
-          |> Integer.to_string()
-
-        [header, encode_key(name), tags, ?\s, fields, ?\s, unix_timestamp_nano_secs]
+  defp to_nanoseconds(timestamp, timestamp_unit) do
+    with {:ok, datetime} <- DateTime.from_unix(timestamp, timestamp_unit) do
+      {:ok, DateTime.to_unix(datetime, :nanosecond)}
     end
   end
 
