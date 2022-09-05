@@ -9,7 +9,7 @@ on:
 jobs:
   format:
     name: Code linting
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
 
     steps:
       - uses: actions/checkout@v2
@@ -31,13 +31,11 @@ jobs:
 
   test:
     name: Test suite
-    runs-on: ubuntu-16.04
+    runs-on: ubuntu-20.04
 
     strategy:
       matrix:
         versions:
-          - otp: 18.3
-            elixir: 1.5
           - otp: 23
             elixir: 1.11
 
