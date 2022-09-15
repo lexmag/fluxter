@@ -281,10 +281,12 @@ defmodule Fluxter do
 
   @doc false
   defmacro __using__(_opts) do
-    quote unquote: false, location: :keep do
+    pool_size = Application.get_env(__CALLER__.module, :pool_size, 5)
+
+    quote bind_quoted: [pool_size: pool_size], location: :keep do
       @behaviour Fluxter
 
-      @pool_size Application.get_env(__MODULE__, :pool_size, 5)
+      @pool_size pool_size
       @worker_names Enum.map(0..(@pool_size - 1), &:"#{__MODULE__}-#{&1}")
 
       @doc false
