@@ -2,6 +2,7 @@ defmodule Fluxter.Packet do
   @moduledoc false
 
   use Bitwise
+  require Logger
 
   otp_release = :erlang.system_info(:otp_release)
   @addr_family if(otp_release >= '19', do: [1], else: [])
@@ -27,10 +28,32 @@ defmodule Fluxter.Packet do
       ] ++ anc_data_part
   end
 
-  def build(header, name, tags, fields) do
+  def build(header, name, tags, fields, nil, _) do
+    build(header, name, tags, fields)
+  end
+
+  def build(header, name, tags, fields, timestamp, timestamp_unit) do
+    case to_nanoseconds(timestamp, timestamp_unit) do
+      {:ok, nanoseconds} ->
+        build(header, name, tags, fields) ++ [?\s, to_string(nanoseconds)]
+
+      {:error, reason} ->
+        Logger.warning("Failed to parse provided timestamp: #{reason}, skipping timestamp")
+        build(header, name, tags, fields)
+    end
+  end
+
+  defp build(header, name, tags, fields) do
     tags = encode_tags(tags)
     fields = encode_fields(fields)
+
     [header, encode_key(name), tags, ?\s, fields]
+  end
+
+  defp to_nanoseconds(timestamp, timestamp_unit) do
+    with {:ok, datetime} <- DateTime.from_unix(timestamp, timestamp_unit) do
+      {:ok, DateTime.to_unix(datetime, :nanosecond)}
+    end
   end
 
   defp encode_tags([]), do: ""
