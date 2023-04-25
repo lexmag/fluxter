@@ -1,7 +1,7 @@
 # Fluxter
 
 ![CI Status](https://github.com/lexmag/fluxter/workflows/CI/badge.svg)
-[![Hex Version](https://img.shields.io/hexpm/v/fluxter.svg "Hex Version")](https://hex.pm/packages/fluxter)
+[![Hex Version](https://img.shields.io/hexpm/v/fluxter.svg "Original Hex Version")](https://hex.pm/packages/fluxter)
 
 Fluxter is an [InfluxDB](https://www.influxdata.com/) writer for Elixir. It uses the InfluxDB line protocol over UDP.
 
@@ -11,7 +11,7 @@ Add Fluxter as a dependency to your `mix.exs` file:
 
 ```elixir
 defp deps() do
-  [{:fluxter, "~> 0.8"}]
+  [{:fluxter, "~> 0.11"}]
 end
 ```
 

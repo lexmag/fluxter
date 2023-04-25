@@ -1,8 +1,15 @@
 defmodule Fluxter.Mixfile do
   use Mix.Project
 
-  @version "0.10.0"
-  @source_url "https://github.com/lexmag/fluxter"
+  @version_file Path.join(__DIR__, ".library_version")
+
+  # a special module attribute that recompiles if targeted file has changed
+  @external_resource @version_file
+
+  @version (case Regex.run(~r/^v([\d\.\w-]+)/, File.read!(@version_file), capture: :all_but_first) do
+              [version] -> version
+              nil -> "0.0.0"
+            end)
 
   def project() do
     [
@@ -16,8 +23,7 @@ defmodule Fluxter.Mixfile do
       description: desc(),
 
       # Docs
-      name: "Fluxter",
-      docs: docs()
+      name: "Fluxter"
     ]
   end
 
@@ -31,25 +37,15 @@ defmodule Fluxter.Mixfile do
 
   defp package() do
     [
-      maintainers: ["Aleksei Magusev", "Andrea Leopardi"],
       licenses: ["ISC"],
-      links: %{"GitHub" => @source_url}
+      # these files get packaged and published with the library
+      files: ~w(lib .formatter.exs mix.exs README.md .library_version),
+      organization: "cuatro",
+      links: %{"GitHub" => "https://github.com/NFIBrokerage/beetrix"}
     ]
   end
 
   defp deps() do
     [{:ex_doc, "~> 0.20.0", only: :dev, runtime: false}]
-  end
-
-  defp docs() do
-    [
-      main: "Fluxter",
-      source_ref: "v#{@version}",
-      source_url: @source_url,
-      extras: [
-        "README.md",
-        "CHANGELOG.md"
-      ]
-    ]
   end
 end
