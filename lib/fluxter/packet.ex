@@ -64,6 +64,9 @@ defmodule Fluxter.Packet do
 
       is_binary(val) ->
         [?\", escape(val, '"'), ?\"]
+
+      true ->
+        inspect(val)
     end
   end
 
