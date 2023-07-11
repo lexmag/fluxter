@@ -94,32 +94,91 @@ defmodule FluxterTest do
     :code.purge(OtherFluxter)
   end
 
-  test "write/2,3" do
-    TestFluxter.write("foo", bar: 11, baz: 0)
-    assert_receive {:echo, "foo bar=11i,baz=0i"}
+  describe "write/2,3" do
+    test "no tags, multiple values" do
+      TestFluxter.write("foo", bar: 11, baz: 0)
+      assert_receive {:echo, "foo bar=11i,baz=0i"}
+    end
 
-    TestFluxter.write("foo bar", 11)
-    assert_receive {:echo, "foo\\ bar value=11i"}
+    test "no tags, space in measurement" do
+      TestFluxter.write("foo bar", 11)
+      assert_receive {:echo, "foo\\ bar value=11i"}
+    end
 
-    TestFluxter.write("foo", 1.0)
-    payload = "foo value=#{Float.to_string(1.0)}"
-    assert_receive {:echo, ^payload}
+    test "float value" do
+      TestFluxter.write("foo", 1.0)
+      payload = "foo value=#{Float.to_string(1.0)}"
+      assert_receive {:echo, ^payload}
+    end
 
-    TestFluxter.write("foo", "data\"")
-    assert_receive {:echo, "foo value=\"data\\\"\""}
+    test "quote in value" do
+      TestFluxter.write("foo", "data\"")
+      assert_receive {:echo, "foo value=\"data\\\"\""}
+    end
 
-    TestFluxter.write('foo', true)
-    assert_receive {:echo, "foo value=true"}
-    TestFluxter.write("foo", false)
-    assert_receive {:echo, "foo value=false"}
+    test "bool values" do
+      TestFluxter.write('foo', true)
+      assert_receive {:echo, "foo value=true"}
+      TestFluxter.write("foo", false)
+      assert_receive {:echo, "foo value=false"}
+    end
 
-    TestFluxter.write("foo", [bar: "baz qux"], 0)
-    assert_receive {:echo, "foo,bar=baz\\ qux value=0i"}
+    test "multiple tags, integer value" do
+      TestFluxter.write("foo", [bar: "baz", qux: "baz"], 0)
+      assert_receive {:echo, "foo,bar=baz,qux=baz value=0i"}
+    end
 
-    TestFluxter.write("foo", [bar: "baz", qux: "baz"], 0)
-    assert_receive {:echo, "foo,bar=baz,qux=baz value=0i"}
+    test "space in tag key" do
+      TestFluxter.write("foo", [{:"space bar", "baz"}], 0)
+      assert_receive {:echo, "foo,space\\ bar=baz value=0i"}
+    end
 
-    refute_receive _any
+    test "space in tag value" do
+      TestFluxter.write("foo", [bar: "baz qux"], 0)
+      assert_receive {:echo, "foo,bar=baz\\ qux value=0i"}
+    end
+
+    test "equal sign in tag key" do
+      TestFluxter.write("foo", [{:"equal=bar", "baz"}], 0)
+      assert_receive {:echo, "foo,equal\=bar=baz value=0i"}
+    end
+
+    test "equal sign in tag value" do
+      TestFluxter.write("foo", [bar: "equal=baz"], 0)
+      assert_receive {:echo, "foo,bar=equal\=baz value=0i"}
+    end
+
+    test "nil tag" do
+      TestFluxter.write("foo", [bar: "baz", qux: "baz", nil: nil], 0)
+      assert_receive {:echo, "foo,bar=baz,nil=nil,qux=baz value=0i"}
+    end
+
+    test "nil field" do
+      TestFluxter.write("foo", [bar: "baz", qux: "baz"], nil)
+      assert_receive {:echo, "foo,bar=baz,qux=baz value=\"nil\""}
+    end
+
+    test "atom field" do
+      TestFluxter.write("foo", [bar: "baz", qux: "baz"], :atom)
+      assert_receive {:echo, "foo,bar=baz,qux=baz value=\":atom\""}
+    end
+
+    test "list field" do
+      TestFluxter.write("foo", [bar: "baz", qux: "baz"], [1, 2, 3])
+      assert_receive {:echo, "foo,bar=baz,qux=baz value=\"[1, 2, 3]\""}
+    end
+
+    test "map field" do
+      TestFluxter.write("foo", [bar: "baz", qux: "baz"], %{a: 1})
+      assert_receive {:echo, "foo,bar=baz,qux=baz value=\"%{a: 1}\""}
+    end
+
+    test "multiple complex values" do
+      TestFluxter.write("foo", bar: :atom, baz: [1, 2, 3], qux: %{"a" => "b"}, xnil: nil)
+
+      assert_receive {:echo,
+                      "foo bar=\":atom\",baz=\"[1, 2, 3]\",qux=\"%{\\\"a\\\" => \\\"b\\\"}\",xnil=\"nil\""}
+    end
   end
 
   test "measure/2,3,4 with functions" do

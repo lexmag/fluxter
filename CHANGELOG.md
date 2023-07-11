@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.11.3
+
+- Handle nils, atoms, lists and maps in tag/field keys/values
+
 ## v0.11.2
 
 - Fix `no cond clause evaluated to a truthy value` in `Fluxter.Packet.encode_value/1`

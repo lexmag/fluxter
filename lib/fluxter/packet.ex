@@ -47,9 +47,13 @@ defmodule Fluxter.Packet do
     end)
   end
 
+  defp encode_key(nil), do: "nil"
+
   defp encode_key(val) do
     to_string(val) |> escape(' ,')
   end
+
+  defp encode_value(nil), do: inspect("nil")
 
   defp encode_value(val) do
     cond do
@@ -66,7 +70,9 @@ defmodule Fluxter.Packet do
         [?\", escape(val, '"'), ?\"]
 
       true ->
-        inspect(val)
+        val
+        |> inspect()
+        |> encode_value()
     end
   end
 

@@ -333,7 +333,7 @@ defmodule Fluxter do
 
       def write(measurement, tags \\ [], fields)
 
-      def write(measurement, tags, fields) when is_list(fields) do
+      def write(measurement, tags, [{_, _} | _] = fields) do
         [:positive]
         |> System.unique_integer()
         |> rem(@pool_size)
@@ -341,11 +341,11 @@ defmodule Fluxter do
         |> Fluxter.Conn.write(measurement, tags, fields)
       end
 
-      def write(measurement, tags, value)
-          when is_float(value) or is_integer(value)
-          when is_boolean(value) or is_binary(value) do
-        write(measurement, tags, value: value)
-      end
+      def write(measurement, tags, value) when is_list(value) or is_map(value),
+        do: write(measurement, tags, value: inspect(value))
+
+      def write(measurement, tags, value),
+        do: write(measurement, tags, value: value)
 
       def measure(measurement, tags \\ [], fields \\ [], fun_or_mfa) do
         {elapsed_time, result} =
