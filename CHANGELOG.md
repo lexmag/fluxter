@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.11.4
+
+- Handle empty strings in tag/field values
+
 ## v0.11.3
 
 - Handle nils, atoms, lists and maps in tag/field keys/values

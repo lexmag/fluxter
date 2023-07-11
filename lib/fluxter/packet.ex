@@ -50,7 +50,13 @@ defmodule Fluxter.Packet do
   defp encode_key(nil), do: "nil"
 
   defp encode_key(val) do
-    to_string(val) |> escape(' ,')
+    val
+    |> to_string()
+    |> String.trim()
+    |> case do
+      "" -> "empty"
+      other -> to_string(other) |> escape(' ,')
+    end
   end
 
   defp encode_value(nil), do: inspect("nil")
@@ -67,7 +73,12 @@ defmodule Fluxter.Packet do
         Atom.to_string(val)
 
       is_binary(val) ->
-        [?\", escape(val, '"'), ?\"]
+        val
+        |> String.trim()
+        |> case do
+          "" -> "empty"
+          other -> [?\", escape(other, '"'), ?\"]
+        end
 
       true ->
         val

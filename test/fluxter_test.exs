@@ -158,6 +158,26 @@ defmodule FluxterTest do
       assert_receive {:echo, "foo,bar=baz,qux=baz value=\"nil\""}
     end
 
+    test "empty string tag" do
+      TestFluxter.write("foo", [bar: "baz", qux: "baz", empty: ""], 0)
+      assert_receive {:echo, "foo,bar=baz,empty=empty,qux=baz value=0i"}
+    end
+
+    test "only spaces in tag" do
+      TestFluxter.write("foo", [bar: "baz", qux: "baz", empty: "     "], 0)
+      assert_receive {:echo, "foo,bar=baz,empty=empty,qux=baz value=0i"}
+    end
+
+    test "empty string field" do
+      TestFluxter.write("foo", "")
+      assert_receive {:echo, "foo value=empty"}
+    end
+
+    test "only spaces in field" do
+      TestFluxter.write("foo", "    ")
+      assert_receive {:echo, "foo value=empty"}
+    end
+
     test "atom field" do
       TestFluxter.write("foo", [bar: "baz", qux: "baz"], :atom)
       assert_receive {:echo, "foo,bar=baz,qux=baz value=\":atom\""}
