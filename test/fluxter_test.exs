@@ -148,6 +148,16 @@ defmodule FluxterTest do
       assert_receive {:echo, "foo,bar=equal\=baz value=0i"}
     end
 
+    test "tag key starting with underscore" do
+      TestFluxter.write("foo", [{:__under_bar, "baz"}], 0)
+      assert_receive {:echo, "foo,under_bar=baz value=0i"}
+    end
+
+    test "field key starting with underscore" do
+      TestFluxter.write("foo", [{:bar, "baz"}], [{:_under_qux, 16}])
+      assert_receive {:echo, "foo,bar=baz under_qux=16i"}
+    end
+
     test "nil tag" do
       TestFluxter.write("foo", [bar: "baz", qux: "baz", nil: nil], 0)
       assert_receive {:echo, "foo,bar=baz,nil=nil,qux=baz value=0i"}

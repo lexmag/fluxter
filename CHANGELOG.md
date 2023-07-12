@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.11.6
+
+- Remove leading underscores in tag and field keys.
+
 ## v0.11.5
 
 - Default `empty` value in fields must be quoted to be valid string field value.

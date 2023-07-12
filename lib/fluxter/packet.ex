@@ -54,8 +54,14 @@ defmodule Fluxter.Packet do
     |> to_string()
     |> String.trim()
     |> case do
-      "" -> "empty"
-      other -> to_string(other) |> escape(' ,')
+      "" ->
+        "empty"
+
+      other ->
+        other
+        |> to_string()
+        |> String.trim_leading("_")
+        |> escape(' ,')
     end
   end
 
