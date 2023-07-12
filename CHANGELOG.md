@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.11.5
+
+- Default `empty` value in fields must be quoted to be valid string field value.
+
 ## v0.11.4
 
 - Handle empty strings in tag/field values

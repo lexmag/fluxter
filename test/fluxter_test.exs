@@ -170,12 +170,12 @@ defmodule FluxterTest do
 
     test "empty string field" do
       TestFluxter.write("foo", "")
-      assert_receive {:echo, "foo value=empty"}
+      assert_receive {:echo, "foo value=\"empty\""}
     end
 
     test "only spaces in field" do
       TestFluxter.write("foo", "    ")
-      assert_receive {:echo, "foo value=empty"}
+      assert_receive {:echo, "foo value=\"empty\""}
     end
 
     test "atom field" do

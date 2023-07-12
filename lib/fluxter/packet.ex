@@ -76,7 +76,7 @@ defmodule Fluxter.Packet do
         val
         |> String.trim()
         |> case do
-          "" -> "empty"
+          "" -> "\"empty\""
           other -> [?\", escape(other, '"'), ?\"]
         end
 
