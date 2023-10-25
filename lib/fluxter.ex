@@ -162,12 +162,12 @@ defmodule Fluxter do
   @doc """
   Should be the same as `measure(measurement, [], [], fun_or_mfa)`.
   """
-  @callback measure(measurement, (() -> result) | mfa()) :: result when result: var
+  @callback measure(measurement, (-> result) | mfa()) :: result when result: var
 
   @doc """
   Should be the same as `measure(measurement, tags, [], fun_or_mfa)`.
   """
-  @callback measure(measurement, tags, (() -> result) | mfa()) :: result when result: var
+  @callback measure(measurement, tags, (-> result) | mfa()) :: result when result: var
 
   @doc """
   Measures the execution time of `fun_or_mfa` and writes it as a metric.
@@ -195,7 +195,7 @@ defmodule Fluxter do
       2
 
   """
-  @callback measure(measurement, tags, fields, (() -> result) | mfa()) :: result when result: var
+  @callback measure(measurement, tags, fields, (-> result) | mfa()) :: result when result: var
 
   @doc """
   Should be the same as `start_counter(measurement, [], [])`.
@@ -312,10 +312,7 @@ defmodule Fluxter do
 
         config = Fluxter.get_config(__MODULE__, options)
 
-        conn =
-          config.host
-          |> Fluxter.Conn.new(config.port)
-          |> Map.update!(:header, &[&1 | config.prefix])
+        conn = Fluxter.Conn.new(config.host, config.port, config.prefix)
 
         @worker_names
         |> Enum.map(fn name ->
