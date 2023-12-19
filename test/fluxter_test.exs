@@ -87,7 +87,7 @@ defmodule FluxterTest do
     options = [port: 9092, prefix: "xyzzy"]
     {:ok, _} = OtherFluxter.start_link(options)
 
-    OtherFluxter.write('foo', bar: 2)
+    OtherFluxter.write(~c"foo", bar: 2)
     assert_receive {:echo, "xyzzy_foo bar=2i"}
   after
     :code.delete(OtherFluxter)
@@ -117,7 +117,7 @@ defmodule FluxterTest do
     end
 
     test "bool values" do
-      TestFluxter.write('foo', true)
+      TestFluxter.write(~c"foo", true)
       assert_receive {:echo, "foo value=true"}
       TestFluxter.write("foo", false)
       assert_receive {:echo, "foo value=false"}

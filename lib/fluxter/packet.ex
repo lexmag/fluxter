@@ -1,36 +1,10 @@
 defmodule Fluxter.Packet do
   @moduledoc false
 
-  import Bitwise
-
-  otp_release = :erlang.system_info(:otp_release)
-  @addr_family if(otp_release >= '19', do: [1], else: [])
-
-  def header({n1, n2, n3, n4}, port) do
-    true = Code.ensure_loaded?(:gen_udp)
-
-    anc_data_part =
-      if function_exported?(:gen_udp, :send, 5) do
-        [0, 0, 0, 0]
-      else
-        []
-      end
-
-    @addr_family ++
-      [
-        band(bsr(port, 8), 0xFF),
-        band(port, 0xFF),
-        band(n1, 0xFF),
-        band(n2, 0xFF),
-        band(n3, 0xFF),
-        band(n4, 0xFF)
-      ] ++ anc_data_part
-  end
-
-  def build(header, name, tags, fields) do
+  def build(prefix, name, tags, fields) do
     tags = encode_tags(tags)
     fields = encode_fields(fields)
-    [header, encode_key(name), tags, ?\s, fields]
+    [prefix, encode_key(name), tags, ?\s, fields]
   end
 
   defp encode_tags([]), do: ""
@@ -61,7 +35,7 @@ defmodule Fluxter.Packet do
         other
         |> to_string()
         |> String.trim_leading("_")
-        |> escape(' ,')
+        |> escape(~c" ,")
     end
   end
 
@@ -83,7 +57,7 @@ defmodule Fluxter.Packet do
         |> String.trim()
         |> case do
           "" -> "\"empty\""
-          other -> [?\", escape(other, '"'), ?\"]
+          other -> [?\", escape(other, ~c"\""), ?\"]
         end
 
       true ->
