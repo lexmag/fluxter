@@ -17,8 +17,8 @@ jobs:
       - name: Set up Elixir environment
         uses: erlef/setup-beam@v1
         with:
-          otp-version: "25"
-          elixir-version: "1.17"
+          otp-version: "24"
+          elixir-version: "1.10"
 
       - name: Check unused dependencies
         run: mix deps.get && mix deps.unlock --check-unused
@@ -37,9 +37,7 @@ jobs:
       matrix:
         versions:
           - otp: "24"
-            elixir: "1.11"
-          - otp: "25"
-            elixir: "1.17"
+            elixir: "1.10"
 
     env:
       MIX_ENV: test
