@@ -2,7 +2,7 @@
 
 ## v0.11.0
 
-  * Dropped support for Elixir versions older than 1.10.
+  * Dropped support for Elixir versions older than 1.14.
 
 ## v0.10.0
 
