@@ -281,23 +281,11 @@ defmodule Fluxter do
 
   @doc false
   defmacro __using__(_opts) do
-    pool_size = Application.get_env(__CALLER__.module, :pool_size, 5)
-
-    quote bind_quoted: [pool_size: pool_size], location: :keep do
+    quote bind_quoted: [], location: :keep do
       @behaviour Fluxter
 
-      @pool_size pool_size
+      @pool_size Application.compile_env(__MODULE__, :pool_size, 5)
       @worker_names Enum.map(0..(@pool_size - 1), &:"#{__MODULE__}-#{&1}")
-
-      @doc false
-      def child_spec() do
-        IO.warn(
-          "#{inspect(__MODULE__)}.child_spec/0 is deprecated. " <>
-            "Use the new child specifications outlined in the Supervisor module instead"
-        )
-
-        child_spec([])
-      end
 
       def child_spec(options) do
         %{

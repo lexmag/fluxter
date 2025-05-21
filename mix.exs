@@ -8,7 +8,7 @@ defmodule Fluxter.Mixfile do
     [
       app: :fluxter,
       version: @version,
-      elixir: "~> 1.5",
+      elixir: "~> 1.10",
       deps: deps(),
 
       # Hex
