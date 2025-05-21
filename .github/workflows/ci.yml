@@ -15,10 +15,10 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Set up Elixir environment
-        uses: erlef/setup-elixir@v1
+        uses: erlef/setup-beam@v1
         with:
-          otp-version: 23
-          elixir-version: 1.11
+          otp-version: "23"
+          elixir-version: "1.11"
 
       - name: Check unused dependencies
         run: mix deps.get && mix deps.unlock --check-unused
@@ -36,10 +36,10 @@ jobs:
     strategy:
       matrix:
         versions:
-          - otp: 20
-            elixir: 1.10
-          - otp: 23
-            elixir: 1.11
+          - otp: "20"
+            elixir: "1.10"
+          - otp: "23"
+            elixir: "1.11"
 
     env:
       MIX_ENV: test
