@@ -31,7 +31,6 @@ defmodule Fluxter.Mixfile do
 
   defp package() do
     [
-      maintainers: ["Aleksei Magusev", "Andrea Leopardi"],
       licenses: ["ISC"],
       links: %{"GitHub" => @source_url}
     ]
