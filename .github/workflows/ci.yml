@@ -9,7 +9,7 @@ on:
 jobs:
   format:
     name: Code linting
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
       - uses: actions/checkout@v2
@@ -17,8 +17,8 @@ jobs:
       - name: Set up Elixir environment
         uses: erlef/setup-beam@v1
         with:
-          otp-version: "23.3"
-          elixir-version: "1.11"
+          otp-version: "25"
+          elixir-version: "1.18"
 
       - name: Check unused dependencies
         run: mix deps.get && mix deps.unlock --check-unused
@@ -31,15 +31,15 @@ jobs:
 
   test:
     name: Test suite
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     strategy:
       matrix:
         versions:
-          - otp: "20.3"
-            elixir: "1.10"
-          - otp: "23.3"
+          - otp: "24"
             elixir: "1.11"
+          - otp: "25"
+            elixir: "1.18"
 
     env:
       MIX_ENV: test
