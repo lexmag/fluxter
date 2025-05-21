@@ -11,7 +11,7 @@ Add Fluxter as a dependency to your `mix.exs` file:
 
 ```elixir
 defp deps() do
-  [{:fluxter, "~> 0.8"}]
+  [{:fluxter, "~> 0.11"}]
 end
 ```
 
