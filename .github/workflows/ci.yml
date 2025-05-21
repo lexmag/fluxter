@@ -17,7 +17,7 @@ jobs:
       - name: Set up Elixir environment
         uses: erlef/setup-beam@v1
         with:
-          otp-version: "23.x"
+          otp-version: "23.3"
           elixir-version: "1.11"
 
       - name: Check unused dependencies
@@ -36,9 +36,9 @@ jobs:
     strategy:
       matrix:
         versions:
-          - otp: "20.x"
+          - otp: "20.3"
             elixir: "1.10"
-          - otp: "23.x"
+          - otp: "23.3"
             elixir: "1.11"
 
     env:
