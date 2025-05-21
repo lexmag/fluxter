@@ -281,7 +281,7 @@ defmodule Fluxter do
 
   @doc false
   defmacro __using__(_opts) do
-    quote bind_quoted: [], location: :keep do
+    quote unquote: false, location: :keep do
       @behaviour Fluxter
 
       @pool_size Application.compile_env(:fluxter, [__MODULE__, :pool_size], 5)
