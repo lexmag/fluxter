@@ -8,7 +8,7 @@ defmodule Fluxter.Mixfile do
     [
       app: :fluxter,
       version: @version,
-      elixir: "~> 1.10",
+      elixir: "~> 1.14",
       deps: deps(),
 
       # Hex
@@ -38,7 +38,7 @@ defmodule Fluxter.Mixfile do
   end
 
   defp deps() do
-    [{:ex_doc, "~> 0.20", only: :dev, runtime: false}]
+    [{:ex_doc, "~> 0.38", only: :dev, runtime: false}]
   end
 
   defp docs() do
