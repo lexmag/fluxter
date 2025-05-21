@@ -1,7 +1,7 @@
 defmodule Fluxter.Packet do
   @moduledoc false
 
-  use Bitwise
+  import Bitwise
 
   otp_release = :erlang.system_info(:otp_release)
   @addr_family if(otp_release >= '19', do: [1], else: [])
