@@ -284,7 +284,7 @@ defmodule Fluxter do
     quote bind_quoted: [], location: :keep do
       @behaviour Fluxter
 
-      @pool_size Application.compile_env(__MODULE__, :pool_size, 5)
+      @pool_size Application.compile_env(:fluxter, [__MODULE__, :pool_size], 5)
       @worker_names Enum.map(0..(@pool_size - 1), &:"#{__MODULE__}-#{&1}")
 
       def child_spec(options) do

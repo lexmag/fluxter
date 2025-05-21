@@ -38,7 +38,7 @@ defmodule Fluxter.Mixfile do
   end
 
   defp deps() do
-    [{:ex_doc, "~> 0.30.0", only: :dev, runtime: false}]
+    [{:ex_doc, "~> 0.20", only: :dev, runtime: false}]
   end
 
   defp docs() do
